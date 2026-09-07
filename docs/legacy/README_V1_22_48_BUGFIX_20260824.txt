@@ -1,0 +1,11 @@
+StokLedger PRO ULTIMA v1.22.48 - Bugfix 2026-08-24
+
+Perbaikan:
+1. Import kategori JASA langsung tersinkron ke Kategori Jasa/Daftar Jasa.
+2. Search Daftar Barang diperbaiki (SKU/nama/barcode).
+3. Penyusutan periode bulan berjalan masuk Beban dashboard walau tanggal jurnal akhir bulan.
+4. Alokasi DP mendukung SALDO AWAL Piutang/Hutang (OPENING:x), termasuk edit/hapus dan laporan saldo.
+5. Laporan Rincian Penjualan menampilkan Total Diskon (diskon item + alokasi diskon invoice).
+6. Retur Penjualan/Pembelian mengurangi nilai invoice efektif dan outstanding AR/AP.
+7. Import transaksi menolak nomor bukti/invoice/jurnal yang sudah ada; import Kas juga menolak duplikat di file.
+8. Template Import Penjualan/Pembelian mendukung Kode Satuan untuk multi-satuan.

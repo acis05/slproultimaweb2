@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.log
+logs/*
+!logs/.gitkeep
+backups/*
+!backups/.gitkeep
+data/*
+!data/.gitkeep
+project_documents/
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
