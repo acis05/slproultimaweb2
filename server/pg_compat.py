@@ -301,6 +301,12 @@ class PgConnection:
         return False
 
 
-def connect(database_url: str) -> PgConnection:
+def connect(database_url: str, schema: str | None = None) -> PgConnection:
     raw = psycopg.connect(database_url, autocommit=False)
+    if schema:
+        safe = str(schema).strip()
+        if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", safe):
+            raw.close(); raise ValueError("Schema PostgreSQL tidak valid.")
+        with raw.cursor() as cur:
+            cur.execute(f'SET search_path TO "{safe}", public')
     return PgConnection(raw)

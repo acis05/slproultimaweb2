@@ -11,8 +11,9 @@ from . import order_dp
 from . import reporting
 from . import excel_import
 from . import coa_templates
-from . import owner_cloud, licensing
+from . import owner_cloud, licensing, saas
 from .webui import HTML
+from .owner_admin_ui import OWNER_HTML
 logging.basicConfig(level=logging.INFO,format="%(asctime)s %(levelname)s %(message)s",
 handlers=[logging.FileHandler(LOG_DIR/"server.log",encoding="utf-8"),logging.StreamHandler()])
 log=logging.getLogger("stokledger")
@@ -94,6 +95,13 @@ class H(BaseHTTPRequestHandler):
             p=urlparse(self.path);path=p.path;q=parse_qs(p.query)
             self.edition_guard(path,"GET")
             if path=="/":self.out(200,HTML.encode(),"text/html; charset=utf-8")
+            elif path=="/owner-admin":self.out(200,OWNER_HTML.encode(),"text/html; charset=utf-8")
+            elif path=="/api/owner/accounts":
+                if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
+                self.js(200,{"items":saas.list_accounts(q.get("q",[""])[0],q.get("status",[""])[0])})
+            elif path=="/api/owner/discounts":
+                if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
+                self.js(200,{"items":saas.list_discounts()})
             elif path=="/assets/stokledger-logo.png":
                 asset=BASE_DIR/"assets"/"stokledger-logo.png"
                 self.out(200,asset.read_bytes(),"image/png")
@@ -109,7 +117,7 @@ class H(BaseHTTPRequestHandler):
                 if not user or not repo.allowed(user,"inventory.manage"):raise E(401,"Sesi download template tidak valid.")
                 content,filename=self.safe(excel_import.template,q.get("type",[""])[0]);self.fileout(content,filename)
             elif path=="/api/health":
-                ls=repo.license_status(); self.js(200,{"status":"ok","app":PRODUCT_NAME+" Server","version":VERSION,"edition":PRODUCT_NAME,"is_ultima":IS_ULTIMA,"web_mode":WEB_MODE,"database_backend":DATABASE_BACKEND,"license":{"mode":ls.get("mode"),"plan_name":ls.get("plan_name"),"days_remaining":ls.get("days_remaining"),"max_users":ls.get("max_users")}})
+                self.js(200,{"status":"ok","app":PRODUCT_NAME+" Server","version":VERSION,"edition":PRODUCT_NAME,"is_ultima":IS_ULTIMA,"web_mode":WEB_MODE,"database_backend":DATABASE_BACKEND,"platform_mode":"MULTI_TENANT_SAAS" if IS_POSTGRES else "SINGLE_DATABASE","trial_days":7,"trial_users":2,"registration_enabled":bool(IS_POSTGRES)})
             elif path=="/api/system/storage-info":
                 self.me("settings.manage");self.js(200,{"database":"PostgreSQL" if IS_POSTGRES else str(DB_PATH),"backend":DATABASE_BACKEND,"backup_directory":"Railway PostgreSQL Backups" if IS_POSTGRES else str(BACKUP_DIR),"data_directory":"PostgreSQL managed" if IS_POSTGRES else str(DB_PATH.parent)})
             elif path=="/api/me":self.js(200,{"user":self.me()})
@@ -381,7 +389,24 @@ class H(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             path=urlparse(self.path).path;d=self.body()
-            if path=="/api/owner-cloud/register":
+            if path=="/api/signup":
+                account=self.safe(saas.register_account,d)
+                self.js(201,{"status":"created","account":{"account_code":account["account_code"],"company_name":account["company_name"],"email":account["email"],"trial_expires_at":account["trial_expires_at"],"days_remaining":account["days_remaining"]}})
+            elif path=="/api/owner/login":
+                token=self.safe(saas.owner_login,d.get("password"));self.js(200,{"token":token})
+            elif path=="/api/owner/discounts":
+                if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
+                code=self.safe(saas.save_discount,d);self.js(201,{"status":"saved","code":code})
+            elif path.startswith("/api/owner/accounts/") and path.endswith("/activate"):
+                if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
+                aid=int(path.split("/")[4]);item=self.safe(saas.activate_account,aid,d.get("plan_code"),d.get("addon_users",0),d.get("discount_code",""),d.get("starts_at"),d.get("notes",""));self.js(200,{"status":"activated","item":item})
+            elif path.startswith("/api/owner/accounts/") and path.endswith("/reset-trial"):
+                if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
+                aid=int(path.split("/")[4]);self.js(200,{"status":"trial_reset","item":self.safe(saas.reset_trial,aid)})
+            elif path.startswith("/api/owner/accounts/") and path.endswith("/status"):
+                if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
+                aid=int(path.split("/")[4]);self.js(200,{"status":"updated","item":self.safe(saas.set_account_status,aid,d.get("status"))})
+            elif path=="/api/owner-cloud/register":
                 self.me("settings.manage");self.js(200,self.safe(owner_cloud.register))
             elif path=="/api/owner-cloud/pairing-code":
                 self.me("settings.manage");self.js(200,self.safe(owner_cloud.new_pairing_code))
@@ -605,7 +630,10 @@ class H(BaseHTTPRequestHandler):
     def do_DELETE(self):
         try:
             path=urlparse(self.path).path
-            if path.startswith("/api/coa/"):
+            if path.startswith("/api/owner/discounts/"):
+                if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
+                self.safe(saas.delete_discount,path.rsplit("/",1)[1]);self.js(200,{"status":"deleted"});return
+            elif path.startswith("/api/coa/"):
                 self.js(200,self.safe(repo.delete_coa,self.me("accounting.manage"),int(path.rsplit("/",1)[1]),self.client_address[0]))
             elif False: pass
             if path.startswith("/api/assemblies/") and path.endswith("/finish"):
@@ -685,6 +713,9 @@ def run():
     global DATABASE_SWITCH_REQUESTED, ACTIVE_SERVER
     DATABASE_SWITCH_REQUESTED = False
     init_database()
+    if IS_POSTGRES:
+        try: saas.ensure_schema()
+        except Exception: log.exception("Inisialisasi platform SaaS gagal"); raise
     try: repo.close_prior_fiscal_years()
     except Exception: log.exception("Penutupan otomatis tahun buku gagal")
     try: log.info("Core non-inventory repair: %s",repo.reconcile_core_linkages())

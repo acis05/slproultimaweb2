@@ -4,12 +4,12 @@ import json
 from datetime import date, timedelta, datetime, timezone
 import csv,io,html,base64,mimetypes
 from pathlib import Path
-from .database import connect, write_transaction
+from .database import connect, write_transaction, set_tenant_schema, current_tenant_schema
 from .services import inventory_service
 from .services import bank_pdf_parser, purchase_service, accounting_service, cash_service, returns_service
 from .security import hash_password, verify_password, new_token, utc_now, expires_at, is_expired
 from .config import TOKEN_HOURS, DATA_DIR, IS_POSTGRES
-from . import licensing, multi_unit, subscription
+from . import licensing, multi_unit, subscription, saas
 def user_dict(r):
     return {"id":r["id"],"username":r["username"],"full_name":r["full_name"],
     "is_active":bool(r["is_active"]),"role":{"id":r["role_id"],"code":r["role_code"],
@@ -30,6 +30,13 @@ def audit(uid,action,etype=None,eid=None,details=None,ip=None,conn=None):
     except Exception:
         return False
 def login(username,password,ip,client_name="browser",device_id=None,user_agent=None):
+    account=saas.account_by_email(username) if IS_POSTGRES else None
+    if account:
+        if account.get('status')=='SUSPENDED': raise ValueError('Akun dinonaktifkan oleh Administrator StokLedger.')
+        set_tenant_schema(account['schema_name'])
+        username=account['email']
+    else:
+        set_tenant_schema(None)
     c=connect()
     try:
         r=c.execute("""SELECT u.*,r.code role_code,r.name role_name,r.permissions_json
@@ -56,17 +63,30 @@ def login(username,password,ip,client_name="browser",device_id=None,user_agent=N
         tx.execute("""INSERT INTO sessions(token,user_id,client_ip,client_name,device_id,user_agent,created_at,expires_at,last_seen_at)
         VALUES(?,?,?,?,?,?,?,?,?)""",(token,r["id"],ip,client_name,device_id,str(user_agent or '')[:300],now,expires_at(TOKEN_HOURS),now))
         audit(r["id"],"LOGIN_SUCCESS","session",token[:8],{"device_id":device_id,"client_name":client_name},ip,tx)
-    return {"token":token,"user":user_dict(r)}
+    if account:
+        saas.bind_session(token,account['id'],account['schema_name'],TOKEN_HOURS)
+    return {"token":token,"user":user_dict(r),"account":account}
+
+def _activate_session_tenant(token):
+    if IS_POSTGRES:
+        info=saas.session_info(token)
+        if info:
+            set_tenant_schema(info['schema_name']); return info
+        set_tenant_schema(None)
+    return None
 
 def logout(token):
     if not token:return False
+    _activate_session_tenant(token)
     with write_transaction() as tx:
         row=tx.execute("SELECT user_id,device_id FROM sessions WHERE token=?",(token,)).fetchone()
         tx.execute("DELETE FROM sessions WHERE token=?",(token,))
         if row:audit(row["user_id"],"LOGOUT","session",str(token)[:8],{"device_id":row["device_id"]},None,tx)
+    if IS_POSTGRES: saas.remove_session(token)
     return True
 def heartbeat(token):
     if not token:return False
+    _activate_session_tenant(token)
     with write_transaction() as tx:
         row=tx.execute("SELECT token FROM sessions WHERE token=?",(token,)).fetchone()
         if not row:return False
@@ -96,6 +116,8 @@ def force_logout_session(session_id):
 
 def authenticate(token):
     if not token: return None
+    info=_activate_session_tenant(token)
+    if info and str(info.get('account_status') or '').upper()=='SUSPENDED': return None
     c=connect()
     try:
         r=c.execute("""SELECT s.expires_at,u.*,r.code role_code,r.name role_name,r.permissions_json
@@ -124,13 +146,20 @@ def subscription_admin_activate(actor,d,ip):
     with write_transaction() as tx:
         st=subscription.activate(tx,d.get('plan_code'),d.get('addon_users',0),d.get('customer_name',''),d.get('notes',''),d.get('starts_at'))
         audit(actor['id'],'SUBSCRIPTION_ACTIVATED','subscription','1',{'plan_code':st.get('plan_code'),'addon_users':st.get('addon_users'),'expires_at':st.get('expires_at')},ip,tx)
-        return st
+    if IS_POSTGRES and current_tenant_schema():
+        try: saas.sync_account_subscription(current_tenant_schema(),st)
+        except Exception: pass
+    return st
 
 def subscription_admin_reset_trial(actor,ip,admin_key=None):
     if not actor or actor.get('role',{}).get('code')!='ADMIN': raise ValueError('Hanya Administrator yang dapat mengatur trial.')
     subscription.validate_admin_key(admin_key)
     with write_transaction() as tx:
-        st=subscription.reset_trial(tx); audit(actor['id'],'TRIAL_RESET','subscription','1',{},ip,tx); return st
+        st=subscription.reset_trial(tx); audit(actor['id'],'TRIAL_RESET','subscription','1',{},ip,tx)
+    if IS_POSTGRES and current_tenant_schema():
+        try: saas.sync_account_subscription(current_tenant_schema(),st)
+        except Exception: pass
+    return st
 def list_roles():
     c=connect()
     try:

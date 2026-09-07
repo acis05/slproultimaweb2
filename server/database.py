@@ -8,6 +8,29 @@ from . import pg_compat
 from . import subscription
 
 WRITE_LOCK = threading.RLock()
+_TENANT_CONTEXT = threading.local()
+
+def current_tenant_schema():
+    return getattr(_TENANT_CONTEXT, "schema", None)
+
+def set_tenant_schema(schema=None):
+    if schema:
+        schema=str(schema).strip()
+        if not __import__("re").match(r"^[A-Za-z_][A-Za-z0-9_]*$", schema):
+            raise ValueError("Schema tenant tidak valid.")
+        _TENANT_CONTEXT.schema=schema
+    elif hasattr(_TENANT_CONTEXT, "schema"):
+        delattr(_TENANT_CONTEXT, "schema")
+
+@contextmanager
+def tenant_scope(schema=None):
+    previous=current_tenant_schema()
+    set_tenant_schema(schema)
+    try:
+        yield
+    finally:
+        set_tenant_schema(previous)
+
 DB_OPERATIONAL_ERRORS = (sqlite3.OperationalError, pg_compat.OperationalError)
 DB_INTEGRITY_ERRORS = (sqlite3.IntegrityError, pg_compat.IntegrityError)
 
@@ -839,11 +862,11 @@ ROLES=[
 ("CASHIER","Kasir",'["dashboard.view","sales.view","sales.manage","inventory.view","partners.view","partners.manage","cash.view","cash.manage","accounting.view","accounting.manage","receivables.view","receivables.manage","payables.view","payables.manage"]'),
 ("WAREHOUSE","Gudang",'["dashboard.view","inventory.view","inventory.manage","partners.view","purchases.view","purchases.manage"]')]
 
-def connect():
+def connect(schema=None):
     if IS_POSTGRES:
         if not DATABASE_URL:
             raise RuntimeError("DATABASE_URL PostgreSQL belum dikonfigurasi.")
-        return pg_compat.connect(DATABASE_URL)
+        return pg_compat.connect(DATABASE_URL, schema=schema or current_tenant_schema())
     c=sqlite3.connect(DB_PATH,timeout=15,check_same_thread=False); c.row_factory=sqlite3.Row
     c.execute("PRAGMA foreign_keys=ON"); c.execute("PRAGMA busy_timeout=10000"); return c
 
@@ -1179,6 +1202,36 @@ def init_database():
                           (dtype,title,header,footer,logo,prices,paper,now))
             c.commit()
         finally: c.close()
+
+
+def init_tenant(schema_name, admin_email, admin_name, admin_password, company_name):
+    """Create an isolated PostgreSQL schema and seed one 7-day trial tenant."""
+    if not IS_POSTGRES:
+        raise RuntimeError("Multi-account Web memerlukan PostgreSQL.")
+    schema_name=str(schema_name or '').strip()
+    if not __import__('re').match(r'^[A-Za-z_][A-Za-z0-9_]*$', schema_name):
+        raise ValueError('Schema tenant tidak valid.')
+    root=connect(schema='public')
+    try:
+        root.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"')
+        root.commit()
+    finally:
+        root.close()
+    with tenant_scope(schema_name):
+        init_database()
+        now=utc_now()
+        with write_transaction() as tx:
+            rid=tx.execute("SELECT id FROM roles WHERE code='ADMIN'").fetchone()[0]
+            row=tx.execute("SELECT id FROM users WHERE username='admin'").fetchone()
+            if row:
+                tx.execute("UPDATE users SET username=?,full_name=?,password_hash=?,role_id=?,is_active=1,updated_at=? WHERE id=?",
+                    (str(admin_email).strip().lower(),str(admin_name).strip(),hash_password(admin_password),rid,now,row['id']))
+            else:
+                tx.execute("INSERT INTO users(username,full_name,password_hash,role_id,is_active,created_at,updated_at) VALUES(?,?,?,?,1,?,?)",
+                    (str(admin_email).strip().lower(),str(admin_name).strip(),hash_password(admin_password),rid,now,now))
+            tx.execute("UPDATE company_profile SET company_name=?,email=?,updated_at=? WHERE id=1",(str(company_name).strip(),str(admin_email).strip().lower(),now))
+            subscription.reset_trial(tx)
+    return True
 
 
 def backup_database(keep_last=30):

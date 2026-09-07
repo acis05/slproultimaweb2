@@ -1,41 +1,34 @@
-# StokLedger Pro Ultima Web v1.2.1 — PostgreSQL Edition
+# StokLedger Pro Ultima Web v1.3.0 — SaaS PostgreSQL Edition
 
-Versi web ini menggunakan **PostgreSQL sebagai database utama** dan ditujukan untuk deployment Railway. Basis fitur tetap berasal dari StokLedger Pro Ultima Desktop v1.22.55 + Web v1.1.1.
+Build ini melanjutkan v1.2.1 PostgreSQL dengan fitur SaaS account management.
 
-## Fitur Web
-- UI mobile-friendly.
-- Trial 7 hari / 2 user.
-- Admin Trial & Langganan.
-- Paket 6 bulan Rp1.200.000 / 2 user.
-- Paket 1 tahun Rp2.000.000 / 2 user.
-- Add-on user Rp100.000 / 6 bulan atau Rp200.000 / 1 tahun.
-- PostgreSQL melalui `DATABASE_URL`.
-- Dokumen Proyek dan logo perusahaan disimpan di PostgreSQL, sehingga tidak membutuhkan Railway Volume untuk file tersebut.
-- Health check `/api/health`.
+## Fitur baru
+- Landing/login Web baru yang berbeda dari Desktop.
+- Pendaftaran akun trial mandiri: 7 hari / maksimal 2 user.
+- Setiap akun trial baru menggunakan schema PostgreSQL terisolasi (`tenant_*`).
+- Owner Admin di `/owner-admin` untuk melihat akun trial/langganan.
+- Owner dapat reset trial, suspend/aktifkan akun, dan aktivasi paket.
+- Kode diskon langganan: persen atau nominal, periode berlaku, batas pemakaian, paket tertentu.
+- Paket 6 bulan: Rp1.200.000 / 2 user; add-on Rp100.000/user.
+- Paket 1 tahun: Rp2.000.000 / 2 user; add-on Rp200.000/user.
+- Mobile UI fix v1.2.1 tetap dipertahankan.
 
-## Railway
-Buat service PostgreSQL di Railway, lalu pada service aplikasi tambahkan reference variable:
-
-```text
-DATABASE_URL=${{Postgres.DATABASE_URL}}
+## Railway Variables wajib
 ```
-
-Nama `Postgres` harus mengikuti nama service PostgreSQL Anda.
-
-Tambahkan juga:
-
-```text
 STOKLEDGER_WEB_MODE=1
-STOKLEDGER_ADMIN_PASSWORD=GANTI_PASSWORD_KUAT
-STOKLEDGER_LICENSE_ADMIN_KEY=GANTI_KUNCI_ADMIN_AKTIVASI
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+STOKLEDGER_ADMIN_PASSWORD=<bootstrap password minimal 8 karakter>
+STOKLEDGER_LICENSE_ADMIN_KEY=<kunci aktivasi tenant>
+STOKLEDGER_OWNER_ADMIN_PASSWORD=<password khusus /owner-admin>
 STOKLEDGER_TOKEN_HOURS=12
 ```
 
-Tidak perlu `STOKLEDGER_DB_PATH` dan tidak wajib membuat Volume `/data` untuk database.
+`STOKLEDGER_OWNER_ADMIN_PASSWORD` wajib dirahasiakan karena dapat mengontrol seluruh akun SaaS.
 
-Lihat `DEPLOY_RAILWAY.md` untuk langkah lengkap.
+## URL
+- Aplikasi / pendaftaran trial: `/`
+- Owner Admin: `/owner-admin`
+- Health check: `/api/health`
 
-## Catatan migrasi
-Build ini membuat schema PostgreSQL baru secara otomatis pada startup pertama. Jangan arahkan Web v1.2.1 ke database produksi PostgreSQL yang sudah berisi schema lain.
-
-Database SQLite Desktop/Web lama **tidak otomatis diimpor** ke PostgreSQL pada build ini. Bila perlu memindahkan data lama, lakukan migrasi terkontrol setelah backup dan verifikasi laporan akuntansi/persediaan.
+## Catatan database
+Akun baru dibuat dalam schema PostgreSQL terpisah agar data antar pelanggan tidak tercampur. Jangan menghapus service PostgreSQL Railway saat redeploy.

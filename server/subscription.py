@@ -61,11 +61,11 @@ def status(c):
       'amount':float(r['amount'] or 0),'customer_name':r['customer_name'] or '','notes':r['notes'] or '',
       'transaction_limit':None,'transactions_remaining':None}
 
-def activate(c, plan_code, addon_users=0, customer_name='', notes='', starts_at=None):
+def activate(c, plan_code, addon_users=0, customer_name='', notes='', starts_at=None, amount_override=None):
     ensure_schema(c); p=PLANS.get(str(plan_code or '').upper())
     if not p: raise ValueError('Paket langganan tidak valid.')
     addon=max(0,int(addon_users or 0)); start=_parse(starts_at) or _now(); exp=_add_months(start,p['months'])
-    amount=p['base_price']+addon*p['addon_price']; n=_iso(_now())
+    amount=p['base_price']+addon*p['addon_price'] if amount_override is None else max(0,float(amount_override)); n=_iso(_now())
     c.execute('''UPDATE web_subscription SET status='ACTIVE',plan_code=?,started_at=?,expires_at=?,base_users=?,addon_users=?,amount=?,customer_name=?,notes=?,updated_at=? WHERE id=1''',
       (p['code'],_iso(start),_iso(exp),p['base_users'],addon,amount,str(customer_name or ''),str(notes or ''),n))
     return status(c)

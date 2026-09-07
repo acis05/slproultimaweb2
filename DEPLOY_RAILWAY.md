@@ -1,67 +1,27 @@
-# Deploy StokLedger Pro Ultima Web v1.2.1 PostgreSQL ke Railway
+# Deploy / Update StokLedger Web v1.3.0 di Railway
 
-## 1. Push source ke GitHub
-Replace source v1.1.1 di folder repo lokal dengan isi source v1.2.1 ini, tetapi jangan hapus folder `.git`. Commit lalu Push dari VS Code.
-
-## 2. PostgreSQL Railway
-Jika service PostgreSQL sudah dibuat, biarkan tetap ada. Jika belum:
-- Railway Project → New → Database → PostgreSQL.
-
-## 3. Hubungkan aplikasi ke PostgreSQL
-Buka service **StokLedger Web → Variables** dan tambahkan:
-
-```text
-DATABASE_URL=${{Postgres.DATABASE_URL}}
+1. Replace source repo lokal dengan isi ZIP v1.3.0, tetapi jangan hapus folder `.git`.
+2. Dari terminal VS Code:
+```bash
+git add .
+git commit -m "Upgrade StokLedger Web v1.3.0 SaaS admin and trial signup"
+git push
 ```
-
-Jika nama service database bukan `Postgres`, ganti nama pada reference variable sesuai nama service Anda.
-
-Tambahkan:
-
-```text
+3. Railway akan redeploy dari GitHub.
+4. Pastikan service aplikasi memiliki Variable:
+```
+DATABASE_URL=${{Postgres.DATABASE_URL}}
 STOKLEDGER_WEB_MODE=1
-STOKLEDGER_ADMIN_PASSWORD=<password-admin-minimal-8-karakter>
-STOKLEDGER_LICENSE_ADMIN_KEY=<kunci-rahasia-aktivasi-minimal-8-karakter>
+STOKLEDGER_ADMIN_PASSWORD=<minimal 8 karakter>
+STOKLEDGER_LICENSE_ADMIN_KEY=<kunci tenant>
+STOKLEDGER_OWNER_ADMIN_PASSWORD=<password owner pusat>
 STOKLEDGER_TOKEN_HOURS=12
 ```
+5. Setelah deploy, buka `/api/health`. Pastikan `database_backend` = `postgresql`.
+6. Buka `/` untuk membuat akun trial baru.
+7. Buka `/owner-admin` untuk kontrol seluruh trial/langganan dan kode diskon.
 
-Jangan isi `STOKLEDGER_DB_PATH` untuk PostgreSQL edition.
-
-## 4. Deploy
-Push ke GitHub akan memicu redeploy otomatis. Startup pertama akan membuat tabel PostgreSQL dan master default.
-
-Health check:
-
-```text
-/api/health
-```
-
-Respons harus menampilkan:
-
-```json
-{"status":"ok","database_backend":"postgresql"}
-```
-
-## 5. Volume
-Untuk v1.2.1 PostgreSQL **Volume `/data` tidak wajib** untuk database. Dokumen Proyek dan logo perusahaan juga disimpan di PostgreSQL.
-
-Log lokal container bersifat sementara; gunakan Railway Logs untuk monitoring.
-
-## 6. Login pertama
-- Username: `admin`
-- Password: nilai `STOKLEDGER_ADMIN_PASSWORD`
-
-Password variable hanya dipakai saat user admin pertama dibuat.
-
-## 7. Backup
-Gunakan fasilitas backup PostgreSQL Railway. Jangan mengandalkan backup `.db` karena build ini tidak memakai SQLite sebagai database utama ketika `DATABASE_URL` terpasang.
-
-## 8. Update berikutnya
-Update source → commit → push. Railway redeploy otomatis dan tetap memakai database PostgreSQL yang sama.
-
-## 9. Jika deployment gagal
-Cek Railway Logs. Kesalahan paling umum:
-- `DATABASE_URL` belum direferensikan ke service PostgreSQL.
-- PostgreSQL service belum aktif.
-- password admin kurang dari 8 karakter.
-- source lama masih memiliki variable `STOKLEDGER_DB_PATH` yang tidak diperlukan.
+## Penting
+- Jangan menghapus PostgreSQL Railway saat update.
+- Password Owner Admin jangan diberikan ke pelanggan.
+- Account trial baru menggunakan schema PostgreSQL tenant terpisah.
