@@ -1,5 +1,7 @@
 import threading
 import json, logging, sqlite3, uuid
+from decimal import Decimal
+from datetime import date, datetime
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from urllib.parse import urlparse,parse_qs
@@ -33,7 +35,22 @@ class H(BaseHTTPRequestHandler):
         if str(self.headers.get("X-Forwarded-Proto","")).lower()=="https":
             self.send_header("Strict-Transport-Security","max-age=31536000; includeSubDomains")
         self.end_headers();self.wfile.write(b)
-    def js(self,s,d):self.out(s,json.dumps(d,ensure_ascii=False).encode(),"application/json; charset=utf-8")
+    @staticmethod
+    def _json_default(value):
+        # psycopg returns PostgreSQL NUMERIC as Decimal.  The SaaS account and
+        # discount APIs expose those values, so make every API response safe
+        # instead of failing after a successful database operation.
+        if isinstance(value, Decimal):
+            return float(value)
+        if isinstance(value, (datetime, date)):
+            return value.isoformat()
+        if isinstance(value, Path):
+            return str(value)
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            return bytes(value).hex()
+        raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+    def js(self,s,d):
+        self.out(s,json.dumps(d,ensure_ascii=False,default=self._json_default).encode(),"application/json; charset=utf-8")
     def fileout(self,content,filename):
         self.send_response(200);self.send_header("Content-Type","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         self.send_header("Content-Disposition",'attachment; filename="'+str(filename).replace('"','')+'"')

@@ -1,4 +1,4 @@
-# StokLedger Web v1.3.0 SaaS Migration Notes
+# StokLedger Web v1.3.1 SaaS Migration Notes
 
 - Melanjutkan seluruh fitur PostgreSQL v1.2.1.
 - Menambah registry SaaS pada schema `public` untuk akun pelanggan, sesi tenant, Owner Admin, dan kode diskon.

@@ -1,4 +1,11 @@
-# StokLedger Pro Ultima Web v1.3.0 — SaaS PostgreSQL Edition
+# StokLedger Pro Ultima Web v1.3.1 — SaaS PostgreSQL Edition
+
+## v1.3.1 hotfix
+
+- Memperbaiki login akun trial PostgreSQL yang sebelumnya dapat berakhir dengan `Kesalahan internal server` saat response mengandung nilai `NUMERIC/Decimal`.
+- Memperbaiki API Owner Admin (akun, status, aktivasi, dan kode diskon) dengan serializer JSON PostgreSQL-safe.
+- Menghapus tautan Owner Admin dari halaman login publik. Owner Admin tetap tersedia hanya melalui URL `/owner-admin`.
+
 
 Build ini melanjutkan v1.2.1 PostgreSQL dengan fitur SaaS account management.
 
