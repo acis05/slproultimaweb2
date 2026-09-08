@@ -1,6 +1,15 @@
-# StokLedger Pro Ultima Web v1.3.2 — SaaS PostgreSQL Edition
+# StokLedger Pro Ultima Web v1.3.3 — SaaS PostgreSQL Edition
 
-## v1.3.2 hotfix
+## v1.3.3 UI cleanup
+
+- Menu Trial & Langganan pelanggan sekarang hanya menampilkan status dan simulasi paket; secret aktivasi tidak lagi tampil di akun tenant.
+- Aktivasi/reset langganan tetap dilakukan dari `/owner-admin`.
+- Menu Owner Mobile Cloud dan Lokasi Database & Backup dihilangkan dari menu Sistem versi web.
+- Input Penjualan di HP memakai kartu item responsif agar Qty, Harga, Diskon, dan Subtotal mudah diisi.
+- Polishing visual untuk card, tombol, input, paket langganan, dan layout mobile.
+
+
+## v1.3.3 hotfix
 
 - Memperbaiki login akun trial PostgreSQL yang sebelumnya dapat berakhir dengan `Kesalahan internal server` saat response mengandung nilai `NUMERIC/Decimal`.
 - Memperbaiki API Owner Admin (akun, status, aktivasi, dan kode diskon) dengan serializer JSON PostgreSQL-safe.

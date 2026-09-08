@@ -1,10 +1,10 @@
-# Deploy / Update StokLedger Web v1.3.2 di Railway
+# Deploy / Update StokLedger Web v1.3.3 di Railway
 
-1. Replace source repo lokal dengan isi ZIP v1.3.2, tetapi jangan hapus folder `.git`.
+1. Replace source repo lokal dengan isi ZIP v1.3.3, tetapi jangan hapus folder `.git`.
 2. Dari terminal VS Code:
 ```bash
 git add .
-git commit -m "Upgrade StokLedger Web v1.3.2 SaaS admin and trial signup"
+git commit -m "Upgrade StokLedger Web v1.3.3 SaaS admin and trial signup"
 git push
 ```
 3. Railway akan redeploy dari GitHub.
@@ -26,7 +26,7 @@ STOKLEDGER_TOKEN_HOURS=12
 - Password Owner Admin jangan diberikan ke pelanggan.
 - Account trial baru menggunakan schema PostgreSQL tenant terpisah.
 
-## Hotfix v1.3.2
+## Hotfix v1.3.3
 
 Jika sebelumnya sudah deploy v1.3.0, cukup replace source dan push ke GitHub. Tidak perlu membuat ulang PostgreSQL. Akun trial/schema tenant yang sudah terbentuk tetap dipakai.
 
