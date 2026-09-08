@@ -1,6 +1,6 @@
-# StokLedger Pro Ultima Web v1.3.1 — SaaS PostgreSQL Edition
+# StokLedger Pro Ultima Web v1.3.2 — SaaS PostgreSQL Edition
 
-## v1.3.1 hotfix
+## v1.3.2 hotfix
 
 - Memperbaiki login akun trial PostgreSQL yang sebelumnya dapat berakhir dengan `Kesalahan internal server` saat response mengandung nilai `NUMERIC/Decimal`.
 - Memperbaiki API Owner Admin (akun, status, aktivasi, dan kode diskon) dengan serializer JSON PostgreSQL-safe.
