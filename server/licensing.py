@@ -177,7 +177,7 @@ def verify_license_file(path):
         signature = base64.b64decode(raw["signature"], validate=True)
         _public_key().verify(signature, _canonical(payload))
         if payload.get("app_id") != APP_ID:
-            return None, 'Lisensi bukan untuk StokLedger Pro Ultima.'
+            return None, 'Lisensi bukan untuk StokLedger Online.'
         if payload.get("license_type") != "LIFETIME":
             return None, "Jenis lisensi tidak didukung."
         if not _is_removable_license_path(Path(path)):

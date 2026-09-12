@@ -47,7 +47,7 @@ DB_PATH = Path(_env_database).expanduser().resolve() if _env_database else (_sel
 HOST = os.environ.get("STOKLEDGER_HOST", "0.0.0.0")
 # Railway injects PORT automatically.
 PORT = int(os.environ.get("PORT", os.environ.get("STOKLEDGER_PORT", "8720")))
-TOKEN_HOURS = int(os.environ.get("STOKLEDGER_TOKEN_HOURS", "12"))
+TOKEN_HOURS = int(os.environ.get("STOKLEDGER_TOKEN_HOURS", "8"))
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 LOG_DIR.mkdir(parents=True, exist_ok=True)

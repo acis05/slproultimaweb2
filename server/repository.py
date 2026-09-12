@@ -30,13 +30,23 @@ def audit(uid,action,etype=None,eid=None,details=None,ip=None,conn=None):
     except Exception:
         return False
 def login(username,password,ip,client_name="browser",device_id=None,user_agent=None):
-    account=saas.account_by_email(username) if IS_POSTGRES else None
+    raw_username=str(username or '').strip()
+    account=saas.account_by_email(raw_username) if IS_POSTGRES else None
+    tenant_username=raw_username
+    if IS_POSTGRES and not account:
+        account,tenant_username=saas.account_for_user_login(raw_username)
+    if IS_POSTGRES and not account:
+        # Production SaaS must never fall back to the public/bootstrap schema.
+        # Every application login has to resolve to a registered tenant.
+        set_tenant_schema(None)
+        return None
     if account:
         if account.get('status')=='SUSPENDED': raise ValueError('Akun dinonaktifkan oleh Administrator StokLedger.')
         set_tenant_schema(account['schema_name'])
-        username=account['email']
+        username=tenant_username or account['email']
     else:
         set_tenant_schema(None)
+        username=raw_username
     c=connect()
     try:
         r=c.execute("""SELECT u.*,r.code role_code,r.name role_name,r.permissions_json
@@ -117,6 +127,9 @@ def force_logout_session(session_id):
 def authenticate(token):
     if not token: return None
     info=_activate_session_tenant(token)
+    if IS_POSTGRES and not info:
+        # Reject legacy/public-schema sessions in SaaS production mode.
+        return None
     if info and str(info.get('account_status') or '').upper()=='SUSPENDED': return None
     c=connect()
     try:
@@ -182,8 +195,11 @@ def create_user(actor,d,ip):
         if not rr: raise ValueError("Role tidak ditemukan.")
         cur=tx.execute("""INSERT INTO users(username,full_name,password_hash,role_id,is_active,created_at,updated_at)
         VALUES(?,?,?,?,1,?,?)""",(username,name,hash_password(password),rr["id"],now,now))
-        audit(actor["id"],"USER_CREATED","user",cur.lastrowid,{"username":username,"role_code":role},ip,tx)
-        return cur.lastrowid
+        new_user_id=cur.lastrowid
+        audit(actor["id"],"USER_CREATED","user",new_user_id,{"username":username,"role_code":role},ip,tx)
+    if IS_POSTGRES and current_tenant_schema():
+        saas.register_tenant_user(current_tenant_schema(),username,True)
+    return new_user_id
 def list_audit(limit=100):
     limit=max(1,min(int(limit),500)); c=connect()
     try:
@@ -2085,6 +2101,8 @@ def update_user(actor,user_id,d,ip):
             tx.execute("DELETE FROM sessions WHERE user_id=?",(user_id,))
         audit(actor["id"],"USER_UPDATED","user",user_id,
           {"username":current["username"],"role_code":role_code,"is_active":bool(is_active)},ip,tx)
+    if IS_POSTGRES and current_tenant_schema():
+        saas.set_tenant_user_active(current_tenant_schema(),current["username"],bool(is_active))
     return next(x for x in list_users() if x["id"]==user_id)
 
 def reset_user_password(actor,user_id,new_password,ip):
@@ -4051,7 +4069,7 @@ def render_document_html(kind,eid):
     page_size="58mm auto" if paper=="STRUK58" else ("80mm auto" if paper=="STRUK80" else ("A4" if paper=="A4" else ("Letter" if paper=="LETTER" else "A5")))
     width="58mm" if paper=="STRUK58" else ("80mm" if paper=="STRUK80" else ("210mm" if paper=="A4" else ("216mm" if paper=="LETTER" else "148mm")))
     receipt=paper in ("STRUK58","STRUK80")
-    company=html.escape(profile.get("company_name") or "StokLedger Pro")
+    company=html.escape(profile.get("company_name") or "StokLedger Online")
     address=html.escape(profile.get("address") or "")
     phone=html.escape(profile.get("phone") or "")
     taxid=html.escape(profile.get("tax_id") or "")

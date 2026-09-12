@@ -3,6 +3,7 @@ import os, re, json, hmac, secrets
 from datetime import datetime, timezone, timedelta
 from .config import DATABASE_URL, IS_POSTGRES
 from . import pg_compat, subscription
+from . import hardening
 from .security import hash_password, verify_password
 
 EMAIL_RE=re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
@@ -60,6 +61,33 @@ def ensure_schema():
           created_at TEXT NOT NULL,
           expires_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS saas_security_attempts(
+          scope TEXT NOT NULL, identifier TEXT NOT NULL, client_ip TEXT NOT NULL,
+          fail_count INTEGER NOT NULL DEFAULT 0, window_started_at TEXT NOT NULL,
+          blocked_until TEXT, updated_at TEXT NOT NULL,
+          PRIMARY KEY(scope,identifier,client_ip)
+        );
+        CREATE TABLE IF NOT EXISTS saas_rate_limits(
+          scope TEXT NOT NULL, rate_key TEXT NOT NULL, client_ip TEXT NOT NULL,
+          hit_count INTEGER NOT NULL DEFAULT 0, window_started_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+          PRIMARY KEY(scope,rate_key,client_ip)
+        );
+        CREATE TABLE IF NOT EXISTS saas_security_audit(
+          id INTEGER PRIMARY KEY AUTOINCREMENT, event_type TEXT NOT NULL, account_id INTEGER,
+          identifier TEXT, client_ip TEXT, details_json TEXT NOT NULL DEFAULT '{}', created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_saas_security_audit_created ON saas_security_audit(created_at);
+        CREATE TABLE IF NOT EXISTS saas_tenant_users(
+          account_id INTEGER NOT NULL,
+          schema_name TEXT NOT NULL,
+          username TEXT NOT NULL,
+          is_active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          PRIMARY KEY(account_id,username)
+        );
+        CREATE INDEX IF NOT EXISTS idx_saas_tenant_users_username ON saas_tenant_users(lower(username));
+        CREATE INDEX IF NOT EXISTS idx_saas_tenant_users_schema ON saas_tenant_users(schema_name);
         CREATE TABLE IF NOT EXISTS saas_discount_codes(
           code TEXT PRIMARY KEY,
           discount_type TEXT NOT NULL,
@@ -77,6 +105,76 @@ def ensure_schema():
         ''')
         c.commit()
     finally:c.close()
+
+def security_audit(event_type, account_id=None, identifier='', client_ip='', details=None):
+    try:
+        ensure_schema(); c=_public()
+        try:
+            c.execute("INSERT INTO saas_security_audit(event_type,account_id,identifier,client_ip,details_json,created_at) VALUES(?,?,?,?,?,?)",
+              (str(event_type or '')[:80],int(account_id) if account_id else None,str(identifier or '')[:180],str(client_ip or '')[:80],json.dumps(details or {},ensure_ascii=False),_iso()))
+            c.commit()
+        finally:c.close()
+        return True
+    except Exception:return False
+
+def list_security_audit(limit=250):
+    ensure_schema(); c=_public()
+    try:
+        rows=c.execute('SELECT * FROM saas_security_audit ORDER BY id DESC LIMIT ?',(max(1,min(1000,int(limit or 250))),)).fetchall(); out=[]
+        for r in rows:
+            d=dict(r)
+            try:d['details']=json.loads(d.pop('details_json') or '{}')
+            except Exception:d['details']={}
+            out.append(d)
+        return out
+    finally:c.close()
+
+def auth_rate_check(scope, identifier, client_ip, max_failures=5, window_minutes=15, block_minutes=15):
+    ensure_schema(); scope=str(scope or '').upper()[:40]; ident=str(identifier or '').strip().lower()[:180] or '-'; ip=str(client_ip or '')[:80] or '-'; now=_now(); c=_public()
+    try:
+        r=c.execute('SELECT * FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip)).fetchone()
+        if not r:return True
+        blocked=_parse(r['blocked_until'])
+        if blocked and blocked>now:
+            wait=max(1,int(((blocked-now).total_seconds()+59)//60)); raise ValueError(f'Terlalu banyak percobaan login. Coba lagi sekitar {wait} menit.')
+        started=_parse(r['window_started_at'])
+        if not started or (now-started)>timedelta(minutes=max(1,int(window_minutes))):
+            c.execute('DELETE FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip));c.commit()
+        return True
+    finally:c.close()
+
+def auth_rate_failure(scope, identifier, client_ip, max_failures=5, window_minutes=15, block_minutes=15, account_id=None):
+    ensure_schema(); scope=str(scope or '').upper()[:40]; ident=str(identifier or '').strip().lower()[:180] or '-'; ip=str(client_ip or '')[:80] or '-'; now=_now(); c=_public()
+    try:
+        r=c.execute('SELECT * FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip)).fetchone(); started=_parse(r['window_started_at']) if r else None
+        if not r or not started or (now-started)>timedelta(minutes=max(1,int(window_minutes))): count=1; started=now
+        else: count=int(r['fail_count'] or 0)+1
+        blocked=(now+timedelta(minutes=max(1,int(block_minutes)))) if count>=max(1,int(max_failures)) else None
+        c.execute("INSERT INTO saas_security_attempts(scope,identifier,client_ip,fail_count,window_started_at,blocked_until,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(scope,identifier,client_ip) DO UPDATE SET fail_count=excluded.fail_count,window_started_at=excluded.window_started_at,blocked_until=excluded.blocked_until,updated_at=excluded.updated_at",
+          (scope,ident,ip,count,_iso(started),_iso(blocked) if blocked else None,_iso(now)));c.commit()
+    finally:c.close()
+    security_audit(scope+'_FAILED',account_id,ident,ip,{'fail_count':count,'blocked':bool(blocked)});return count
+
+def auth_rate_success(scope, identifier, client_ip, account_id=None):
+    scope=str(scope or '').upper()[:40]; ident=str(identifier or '').strip().lower()[:180] or '-'; ip=str(client_ip or '')[:80] or '-'; c=_public()
+    try:c.execute('DELETE FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip));c.commit()
+    finally:c.close()
+    security_audit(scope+'_SUCCESS',account_id,ident,ip,{})
+
+def consume_rate_limit(scope, rate_key, client_ip, max_hits=5, window_minutes=60):
+    ensure_schema(); scope=str(scope or '').upper()[:40]; key=str(rate_key or '').strip().lower()[:180] or '-'; ip=str(client_ip or '')[:80] or '-'; now=_now(); c=_public()
+    try:
+        r=c.execute('SELECT * FROM saas_rate_limits WHERE scope=? AND rate_key=? AND client_ip=?',(scope,key,ip)).fetchone(); started=_parse(r['window_started_at']) if r else None
+        if not r or not started or (now-started)>timedelta(minutes=max(1,int(window_minutes))): count=1; started=now
+        else: count=int(r['hit_count'] or 0)+1
+        if count>max(1,int(max_hits)):
+            wait=max(1,int(((timedelta(minutes=max(1,int(window_minutes)))-(now-started)).total_seconds()+59)//60));raise ValueError(f'Terlalu banyak permintaan. Coba lagi sekitar {wait} menit.')
+        c.execute("INSERT INTO saas_rate_limits(scope,rate_key,client_ip,hit_count,window_started_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(scope,rate_key,client_ip) DO UPDATE SET hit_count=excluded.hit_count,window_started_at=excluded.window_started_at,updated_at=excluded.updated_at",
+          (scope,key,ip,count,_iso(started),_iso(now)));c.commit();return count
+    finally:c.close()
+
+def security_status():
+    return {'owner_2fa_configured':hardening.owner_totp_configured(),'login_lockout':'5 kegagalan / 15 menit','signup_rate_limit':'5 akun / IP / 60 menit','owner_session_hours':4,'tenant_isolation':'PostgreSQL schema + session binding','token_storage':'sessionStorage','security_headers':True}
 
 def _account_dict(r):
     if not r:return None
@@ -99,6 +197,85 @@ def account_by_id(account_id):
     ensure_schema(); c=_public()
     try:return _account_dict(c.execute('SELECT * FROM saas_accounts WHERE id=?',(int(account_id),)).fetchone())
     finally:c.close()
+
+
+
+def account_by_code(account_code):
+    ensure_schema(); c=_public()
+    try:return _account_dict(c.execute('SELECT * FROM saas_accounts WHERE upper(account_code)=upper(?)',(str(account_code or '').strip(),)).fetchone())
+    finally:c.close()
+
+def register_tenant_user(schema_name, username, is_active=True):
+    schema_name=str(schema_name or '').strip(); username=str(username or '').strip()
+    if not schema_name or not username:return None
+    account=account_by_schema(schema_name)
+    if not account:return None
+    ensure_schema(); now=_iso(); c=_public()
+    try:
+        c.execute('''INSERT INTO saas_tenant_users(account_id,schema_name,username,is_active,created_at,updated_at)
+          VALUES(?,?,?,?,?,?) ON CONFLICT(account_id,username) DO UPDATE SET schema_name=excluded.schema_name,is_active=excluded.is_active,updated_at=excluded.updated_at''',
+          (int(account['id']),schema_name,username,1 if is_active else 0,now,now))
+        c.commit()
+    finally:c.close()
+    return account
+
+def set_tenant_user_active(schema_name, username, is_active):
+    schema_name=str(schema_name or '').strip(); username=str(username or '').strip()
+    if not schema_name or not username:return None
+    register_tenant_user(schema_name,username,is_active)
+    c=_public()
+    try:
+        c.execute('UPDATE saas_tenant_users SET is_active=?,updated_at=? WHERE schema_name=? AND lower(username)=lower(?)',
+          (1 if is_active else 0,_iso(),schema_name,username)); c.commit()
+    finally:c.close()
+    return True
+
+def _tenant_user_exists(schema_name, username):
+    if not schema_name or not username:return False
+    try:
+        c=pg_compat.connect(DATABASE_URL,schema=schema_name)
+        try:return bool(c.execute('SELECT 1 FROM users WHERE lower(username)=lower(?) LIMIT 1',(str(username).strip(),)).fetchone())
+        finally:c.close()
+    except Exception:
+        return False
+
+def account_for_user_login(login_name):
+    """Resolve non-owner tenant users to their company schema.
+
+    Supports plain username when it is unique across tenants and ACCOUNT_CODE/username
+    when the same username exists in more than one company. Existing users created on
+    older builds are discovered lazily and backfilled into saas_tenant_users.
+    """
+    ensure_schema(); raw=str(login_name or '').strip()
+    if not raw:return None,None
+    account_code=None; username=raw
+    if '/' in raw:
+        prefix,rest=raw.split('/',1)
+        if prefix.strip() and rest.strip(): account_code=prefix.strip(); username=rest.strip()
+    if account_code:
+        acc=account_by_code(account_code)
+        if acc and _tenant_user_exists(acc['schema_name'],username):
+            register_tenant_user(acc['schema_name'],username,True)
+            return acc,username
+        return None,username
+    c=_public()
+    try:
+        rows=c.execute('''SELECT a.* FROM saas_tenant_users u JOIN saas_accounts a ON a.id=u.account_id
+          WHERE lower(u.username)=lower(?) AND u.is_active=1 ORDER BY a.id''',(username,)).fetchall()
+    finally:c.close()
+    if len(rows)==1:return _account_dict(rows[0]),username
+    if len(rows)>1:raise ValueError('Username dipakai di lebih dari satu perusahaan. Login dengan format KODE_AKUN/username.')
+    # Backward-compatible discovery for users created before the login index existed.
+    c=_public()
+    try:accounts=[_account_dict(x) for x in c.execute('SELECT * FROM saas_accounts ORDER BY id').fetchall()]
+    finally:c.close()
+    found=[]
+    for acc in accounts:
+        if _tenant_user_exists(acc.get('schema_name'),username):
+            register_tenant_user(acc['schema_name'],username,True); found.append(acc)
+    if len(found)==1:return found[0],username
+    if len(found)>1:raise ValueError('Username dipakai di lebih dari satu perusahaan. Login dengan format KODE_AKUN/username.')
+    return None,username
 
 def register_account(data):
     ensure_schema()
@@ -125,6 +302,7 @@ def register_account(data):
     try:
         from .database import init_tenant
         init_tenant(schema,email,owner,password,company)
+        register_tenant_user(schema,email,True)
     except Exception:
         c=_public()
         try:
@@ -156,11 +334,13 @@ def remove_session(token):
     try:c.execute('DELETE FROM saas_sessions WHERE token=?',(token,));c.commit()
     finally:c.close()
 
-def owner_login(password):
+def owner_login(password, otp=''):
     configured=str(os.environ.get('STOKLEDGER_OWNER_ADMIN_PASSWORD') or os.environ.get('STOKLEDGER_LICENSE_ADMIN_KEY') or '').strip()
-    if len(configured)<8: raise ValueError('STOKLEDGER_OWNER_ADMIN_PASSWORD belum dikonfigurasi di Railway Variables.')
+    if len(configured)<12: raise ValueError('STOKLEDGER_OWNER_ADMIN_PASSWORD minimal 12 karakter.')
+    if not hardening.owner_totp_configured(): raise ValueError('2FA Owner Admin belum dikonfigurasi. Set STOKLEDGER_OWNER_TOTP_SECRET di Railway.')
     if not hmac.compare_digest(str(password or ''),configured): raise ValueError('Password Owner Admin salah.')
-    ensure_schema(); token=secrets.token_urlsafe(40); now=_now(); exp=now+timedelta(hours=8); c=_public()
+    if not hardening.verify_owner_totp(otp): raise ValueError('Kode authenticator tidak valid atau sudah kedaluwarsa.')
+    ensure_schema(); token=secrets.token_urlsafe(40); now=_now(); exp=now+timedelta(hours=4); c=_public()
     try:
         c.execute('DELETE FROM saas_owner_sessions WHERE expires_at<=?',(_iso(now),))
         c.execute('INSERT INTO saas_owner_sessions(token,created_at,expires_at) VALUES(?,?,?)',(token,_iso(now),_iso(exp))); c.commit()

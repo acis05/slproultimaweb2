@@ -7,13 +7,13 @@ from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from urllib.parse import urlparse,parse_qs
 from .config import HOST,PORT,DB_PATH,LOG_DIR,BASE_DIR, BACKUP_DIR, WEB_MODE, DATABASE_BACKEND, IS_POSTGRES
 from .product import PRODUCT_NAME, IS_ULTIMA, VERSION
-from .database import init_database, backup_database, DB_OPERATIONAL_ERRORS, DB_INTEGRITY_ERRORS
+from .database import init_database, backup_database, DB_OPERATIONAL_ERRORS, DB_INTEGRITY_ERRORS, current_tenant_schema
 from . import repository as repo
 from . import order_dp
 from . import reporting
 from . import excel_import
 from . import coa_templates
-from . import owner_cloud, licensing, saas
+from . import owner_cloud, licensing, saas, hardening
 from .webui import HTML
 from .owner_admin_ui import OWNER_HTML
 logging.basicConfig(level=logging.INFO,format="%(asctime)s %(levelname)s %(message)s",
@@ -24,6 +24,8 @@ ACTIVE_SERVER = None
 class E(Exception):
     def __init__(self,s,m):self.s=s;self.m=m
 class H(BaseHTTPRequestHandler):
+    server_version="StokLedgerOnline"
+    sys_version=""
     def log_message(self,f,*a):log.info("%s - %s",self.client_address[0],f%a)
     def out(self,s,b,t):
         self.send_response(s)
@@ -32,6 +34,9 @@ class H(BaseHTTPRequestHandler):
         self.send_header("X-Frame-Options","SAMEORIGIN")
         self.send_header("Referrer-Policy","same-origin")
         self.send_header("Permissions-Policy","camera=(), microphone=(), geolocation=()")
+        self.send_header("Cross-Origin-Opener-Policy","same-origin")
+        self.send_header("Cross-Origin-Resource-Policy","same-origin")
+        self.send_header("Content-Security-Policy","default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'")
         if str(self.headers.get("X-Forwarded-Proto","")).lower()=="https":
             self.send_header("Strict-Transport-Security","max-age=31536000; includeSubDomains")
         self.end_headers();self.wfile.write(b)
@@ -63,9 +68,20 @@ class H(BaseHTTPRequestHandler):
         except:raise E(400,"JSON tidak valid.")
     def token(self):
         v=self.headers.get("Authorization","");return v[7:].strip() if v.lower().startswith("bearer ") else ""
+    def client_ip(self):
+        cf=str(self.headers.get("CF-Connecting-IP","") or "").strip()
+        if cf:return cf[:80]
+        xff=str(self.headers.get("X-Forwarded-For","") or "").strip()
+        if xff:return xff.split(",")[0].strip()[:80]
+        return str(self.client_address[0])[:80]
+    def enforce_origin(self):
+        if not WEB_MODE:return
+        if not hardening.origin_is_allowed(self.headers.get("Origin",""),self.headers.get("Referer",""),self.headers.get("Host",""),self.headers.get("X-Forwarded-Proto","https")):
+            raise E(403,"Origin permintaan tidak diizinkan.")
     def me(self,perm=None):
         u=repo.authenticate(self.token())
         if not u:raise E(401,"Sesi tidak valid.")
+        if IS_POSTGRES and not current_tenant_schema():raise E(401,"Sesi tenant tidak valid.")
         if perm and not repo.allowed(u,perm):raise E(403,"Tidak punya hak akses.")
         return u
     def cost_allowed(self,user):
@@ -101,11 +117,11 @@ class H(BaseHTTPRequestHandler):
             return
         blocked_prefixes=("/api/project-","/api/projects/","/api/departments/")
         if path.startswith(blocked_prefixes):
-            raise E(403,"Fitur Proyek dan Departemen hanya tersedia pada StokLedger Pro Ultima.")
+            raise E(403,"Fitur Proyek dan Departemen hanya tersedia pada StokLedger Online.")
         if path in ("/api/project-budgets","/api/projects") and method != "GET":
-            raise E(403,"Fitur Proyek hanya tersedia pada StokLedger Pro Ultima.")
+            raise E(403,"Fitur Proyek hanya tersedia pada StokLedger Online.")
         if path == "/api/departments" and method != "GET":
-            raise E(403,"Fitur Departemen hanya tersedia pada StokLedger Pro Ultima.")
+            raise E(403,"Fitur Departemen hanya tersedia pada StokLedger Online.")
 
     def do_GET(self):
         try:
@@ -119,6 +135,9 @@ class H(BaseHTTPRequestHandler):
             elif path=="/api/owner/discounts":
                 if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
                 self.js(200,{"items":saas.list_discounts()})
+            elif path=="/api/owner/security-audit":
+                if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
+                self.js(200,{"items":saas.list_security_audit(q.get("limit",["250"])[0]),"status":saas.security_status()})
             elif path=="/assets/stokledger-logo.png":
                 asset=BASE_DIR/"assets"/"stokledger-logo.png"
                 self.out(200,asset.read_bytes(),"image/png")
@@ -405,12 +424,18 @@ class H(BaseHTTPRequestHandler):
             self.js(500,{"error":f"Kesalahan internal server. Referensi: {ref}"})
     def do_POST(self):
         try:
+            self.enforce_origin()
             path=urlparse(self.path).path;d=self.body()
             if path=="/api/signup":
-                account=self.safe(saas.register_account,d)
+                ip=self.client_ip();self.safe(saas.consume_rate_limit,"SIGNUP","all",ip,5,60)
+                account=self.safe(saas.register_account,d);saas.security_audit("SIGNUP_SUCCESS",account.get("id"),account.get("email"),ip,{"account_code":account.get("account_code")})
                 self.js(201,{"status":"created","account":{"account_code":account["account_code"],"company_name":account["company_name"],"email":account["email"],"trial_expires_at":account["trial_expires_at"],"days_remaining":account["days_remaining"]}})
             elif path=="/api/owner/login":
-                token=self.safe(saas.owner_login,d.get("password"));self.js(200,{"token":token})
+                ip=self.client_ip();ident="owner-admin";self.safe(saas.auth_rate_check,"OWNER_LOGIN",ident,ip,5,15,30)
+                try:
+                    token=self.safe(saas.owner_login,d.get("password"),d.get("otp"));saas.auth_rate_success("OWNER_LOGIN",ident,ip);self.js(200,{"token":token})
+                except E:
+                    saas.auth_rate_failure("OWNER_LOGIN",ident,ip,5,15,30);raise
             elif path=="/api/owner/discounts":
                 if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
                 code=self.safe(saas.save_discount,d);self.js(201,{"status":"saved","code":code})
@@ -451,9 +476,11 @@ class H(BaseHTTPRequestHandler):
             elif path=="/api/subscription-admin/reset-trial":
                 u=self.me(); self.js(200,self.safe(repo.subscription_admin_reset_trial,u,self.client_address[0],d.get("admin_key")))
             elif path=="/api/login":
-                r=repo.login(str(d.get("username","")),str(d.get("password","")),self.client_address[0],str(d.get("client_name","browser")),str(d.get("device_id","") or ""),self.headers.get("User-Agent",""))
-                if not r:raise E(401,"Username atau password salah.")
-                self.js(200,r)
+                ip=self.client_ip();ident=str(d.get("username","") or "").strip();self.safe(saas.auth_rate_check,"USER_LOGIN",ident,ip,5,15,15)
+                r=repo.login(ident,str(d.get("password","")),ip,str(d.get("client_name","browser")),str(d.get("device_id","") or ""),self.headers.get("User-Agent",""))
+                if not r:
+                    saas.auth_rate_failure("USER_LOGIN",ident,ip,5,15,15);raise E(401,"Username atau password salah.")
+                aid=(r.get("account") or {}).get("id");saas.auth_rate_success("USER_LOGIN",ident,ip,aid);self.js(200,r)
             elif path=="/api/bank-import/pdf-preview":self.js(201,{"result":self.safe(repo.preview_bank_pdf,self.me("cash.manage"),str(d.get("pdf_base64","")),str(d.get("file_name","rekening_koran.pdf")))})
             elif path=="/api/bank-import/preview":self.js(201,{"result":self.safe(repo.preview_bank_csv,self.me("cash.manage"),str(d.get("csv_text","")),str(d.get("file_name","rekening.csv")),d.get("bank_name"))})
             elif path=="/api/bank-import/post":self.js(201,{"result":self.safe(repo.post_bank_import,self.me("cash.manage"),d.get("batch_id"),d.get("cash_account_id"),d.get("mappings",[]),self.client_address[0])})
@@ -552,6 +579,7 @@ class H(BaseHTTPRequestHandler):
             self.js(500,{"error":f"Kesalahan internal server. Referensi: {ref}"})
     def do_PUT(self):
         try:
+            self.enforce_origin()
             path=urlparse(self.path).path
             if path=="/api/owner-cloud/settings":self.js(200,self.safe(owner_cloud.save_settings,self.me("settings.manage") and self.body()))
             elif path=="/api/company-profile":self.safe(repo.update_company_profile,self.me("settings.manage"),self.body(),self.client_address[0]);self.js(200,{"status":"updated"})
@@ -646,6 +674,7 @@ class H(BaseHTTPRequestHandler):
             self.js(500,{"error":f"Kesalahan internal server. Referensi: {ref}"})
     def do_DELETE(self):
         try:
+            self.enforce_origin()
             path=urlparse(self.path).path
             if path.startswith("/api/owner/discounts/"):
                 if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")

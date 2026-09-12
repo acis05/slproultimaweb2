@@ -1,50 +1,58 @@
-# StokLedger Pro Ultima Web v1.3.3 — SaaS PostgreSQL Edition
+# StokLedger Online v1.4.0 — Production Security Edition
 
-## v1.3.3 UI cleanup
+Versi ini melanjutkan v1.3.5 (branding StokLedger Online + multi-tab) dan menambah hardening untuk deployment komersial.
 
-- Menu Trial & Langganan pelanggan sekarang hanya menampilkan status dan simulasi paket; secret aktivasi tidak lagi tampil di akun tenant.
-- Aktivasi/reset langganan tetap dilakukan dari `/owner-admin`.
-- Menu Owner Mobile Cloud dan Lokasi Database & Backup dihilangkan dari menu Sistem versi web.
-- Input Penjualan di HP memakai kartu item responsif agar Qty, Harga, Diskon, dan Subtotal mudah diisi.
-- Polishing visual untuk card, tombol, input, paket langganan, dan layout mobile.
+## Security hardening v1.4.0
 
-
-## v1.3.3 hotfix
-
-- Memperbaiki login akun trial PostgreSQL yang sebelumnya dapat berakhir dengan `Kesalahan internal server` saat response mengandung nilai `NUMERIC/Decimal`.
-- Memperbaiki API Owner Admin (akun, status, aktivasi, dan kode diskon) dengan serializer JSON PostgreSQL-safe.
-- Menghapus tautan Owner Admin dari halaman login publik. Owner Admin tetap tersedia hanya melalui URL `/owner-admin`.
-
-
-Build ini melanjutkan v1.2.1 PostgreSQL dengan fitur SaaS account management.
-
-## Fitur baru
-- Landing/login Web baru yang berbeda dari Desktop.
-- Pendaftaran akun trial mandiri: 7 hari / maksimal 2 user.
-- Setiap akun trial baru menggunakan schema PostgreSQL terisolasi (`tenant_*`).
-- Owner Admin di `/owner-admin` untuk melihat akun trial/langganan.
-- Owner dapat reset trial, suspend/aktifkan akun, dan aktivasi paket.
-- Kode diskon langganan: persen atau nominal, periode berlaku, batas pemakaian, paket tertentu.
-- Paket 6 bulan: Rp1.200.000 / 2 user; add-on Rp100.000/user.
-- Paket 1 tahun: Rp2.000.000 / 2 user; add-on Rp200.000/user.
-- Mobile UI fix v1.2.1 tetap dipertahankan.
+- **Owner Admin 2FA/TOTP wajib**: password + kode Authenticator 6 digit.
+- **Login lockout**: 5 kegagalan dari kombinasi user/IP dalam 15 menit akan diblokir sementara.
+- **Signup rate limit**: maksimal 5 pendaftaran trial per IP per jam.
+- **Owner login protection**: brute-force protection dengan blokir lebih ketat.
+- **Security Audit pusat** di `/owner-admin` → `Security Audit`.
+- **Tenant guard**: login aplikasi PostgreSQL tidak boleh fallback ke schema public/bootstrap. Semua user harus terikat ke tenant.
+- **Origin protection** untuk request POST/PUT/DELETE browser.
+- **Security headers**: CSP, HSTS saat HTTPS, anti-frame, no-sniff, same-origin opener/resource policy.
+- **Session token** aplikasi dan Owner Admin dipindahkan ke `sessionStorage`, bukan persistent `localStorage`.
+- Session aplikasi default dipersingkat menjadi **8 jam**, Owner Admin **4 jam**.
 
 ## Railway Variables wajib
-```
+
+```text
 STOKLEDGER_WEB_MODE=1
 DATABASE_URL=${{Postgres.DATABASE_URL}}
-STOKLEDGER_ADMIN_PASSWORD=<bootstrap password minimal 8 karakter>
-STOKLEDGER_LICENSE_ADMIN_KEY=<kunci aktivasi tenant>
-STOKLEDGER_OWNER_ADMIN_PASSWORD=<password khusus /owner-admin>
-STOKLEDGER_TOKEN_HOURS=12
+STOKLEDGER_ADMIN_PASSWORD=<password bootstrap>
+STOKLEDGER_LICENSE_ADMIN_KEY=<kunci aktivasi>
+STOKLEDGER_TOKEN_HOURS=8
+STOKLEDGER_OWNER_ADMIN_PASSWORD=<minimal 12 karakter>
+STOKLEDGER_OWNER_TOTP_SECRET=<base32 secret authenticator>
+STOKLEDGER_ALLOWED_ORIGINS=https://DOMAIN-PRODUKSI-ANDA
 ```
 
-`STOKLEDGER_OWNER_ADMIN_PASSWORD` wajib dirahasiakan karena dapat mengontrol seluruh akun SaaS.
+Generate secret TOTP sebelum deploy:
 
-## URL
-- Aplikasi / pendaftaran trial: `/`
+```bash
+python scripts/generate_owner_totp.py
+```
+
+Masukkan `STOKLEDGER_OWNER_TOTP_SECRET` yang dihasilkan ke Railway Variables dan tambahkan URI `otpauth://...` ke Google Authenticator, Microsoft Authenticator, 1Password, Authy, atau aplikasi TOTP lain.
+
+## URL penting
+
+- Aplikasi pelanggan: `/`
 - Owner Admin: `/owner-admin`
 - Health check: `/api/health`
 
-## Catatan database
-Akun baru dibuat dalam schema PostgreSQL terpisah agar data antar pelanggan tidak tercampur. Jangan menghapus service PostgreSQL Railway saat redeploy.
+## Production checklist
+
+1. Gunakan custom domain HTTPS.
+2. PostgreSQL hanya diakses dari service aplikasi/private network; jangan expose TCP proxy bila tidak diperlukan.
+3. Aktifkan backup PostgreSQL Railway dan backup offsite berkala.
+4. Gunakan project/environment **staging** terpisah untuk testing update.
+5. Taruh Cloudflare/WAF di depan domain produksi bila memungkinkan.
+6. Jangan commit file `.env` atau secret ke GitHub.
+7. Pastikan Owner 2FA aktif sebelum mulai menjual akun.
+8. Uji tenant A tidak dapat membaca tenant B sebelum setiap release besar.
+
+## Catatan
+
+Hardening aplikasi mengurangi risiko tetapi tidak menggantikan backup, monitoring, patch dependency, pengaturan Railway, Cloudflare/WAF, serta prosedur operasional yang baik.
