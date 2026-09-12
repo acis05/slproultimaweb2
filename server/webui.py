@@ -172,36 +172,14 @@ input,select,textarea{border-color:#cbdbe1;background:#fff;transition:border-col
 @media(max-width:400px){.sale-line{grid-template-columns:1fr!important;grid-template-areas:'no' 'delete' 'product' 'unit' 'qty' 'price' 'subtotal' 'discount' 'desc'!important}.sale-line .icon-delete{margin-top:-42px}.subscription-kpis{grid-template-columns:1fr!important}}
 
 
-/* StokLedger Online v1.3.5 — multi-tab workspace */
-#app:not(.hidden){grid-template-rows:auto minmax(0,1fr)}
-#app:not(.hidden)>.sidebar{grid-row:1 / span 2}
-.workspace-tabs-shell{grid-column:2;grid-row:1;position:sticky;top:0;z-index:18;background:rgba(238,243,247,.96);backdrop-filter:blur(10px);border-bottom:1px solid #d7e2e9;padding:9px 18px 8px;min-width:0}
-.workspace-tabs{display:flex;gap:7px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:2px}
-.workspace-tab{display:inline-flex;align-items:center;gap:7px;max-width:240px;min-width:110px;height:38px;padding:0 9px 0 13px;border:1px solid #cfdee5;border-radius:11px;background:#f8fbfc;color:#4a6572;box-shadow:none;white-space:nowrap;flex:0 0 auto;font-size:12px;font-weight:700}
-.workspace-tab:hover{background:#fff;border-color:#8fcbd1;transform:none;box-shadow:0 4px 12px rgba(16,42,67,.08)}
-.workspace-tab.active{background:#fff;color:#087f8c;border-color:#42b5bf;box-shadow:0 5px 14px rgba(14,135,147,.12)}
-.workspace-tab-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;text-align:left}
-.workspace-tab-close{display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:7px;background:transparent;color:#78909a;font-size:16px;line-height:1;flex:0 0 22px}
-.workspace-tab-close:hover{background:#edf4f6;color:#b42318;box-shadow:none;transform:none}
-.workspace-tab.pinned .workspace-tab-close{display:none}
-.page{grid-row:2}
-.page-close-btn{display:none!important}
-@media(max-width:760px){
-  #app:not(.hidden){display:block!important}.workspace-tabs-shell{position:sticky;top:99px;z-index:79;padding:7px 8px;background:rgba(244,248,250,.97);border-bottom:1px solid #d5e2e7}.workspace-tabs{gap:6px}.workspace-tab{height:36px;min-width:96px;max-width:190px;padding-left:11px;font-size:11px;border-radius:10px}.page{padding-top:10px!important}
-}
+/* Multi-tab workspace */
+#app:not(.hidden){grid-template-rows:auto minmax(0,1fr)}#app:not(.hidden)>.sidebar{grid-row:1 / span 2}.workspace-tabs-shell{grid-column:2;grid-row:1;position:sticky;top:0;z-index:18;background:rgba(238,243,247,.96);backdrop-filter:blur(10px);border-bottom:1px solid #d7e2e9;padding:9px 18px 8px;min-width:0}.workspace-tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:thin;padding-bottom:2px}.workspace-tab{display:inline-flex;align-items:center;gap:7px;max-width:240px;min-width:110px;height:38px;padding:0 9px 0 13px;border:1px solid #cfdee5;border-radius:11px;background:#f8fbfc;color:#4a6572;box-shadow:none;white-space:nowrap;flex:0 0 auto;font-size:12px;font-weight:700}.workspace-tab.active{background:#fff;color:#087f8c;border-color:#42b5bf}.workspace-tab-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;text-align:left}.workspace-tab-close{display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:7px;background:transparent;color:#78909a;font-size:16px;line-height:1;flex:0 0 22px}.workspace-tab.pinned .workspace-tab-close{display:none}.page{grid-row:2}.page-close-btn{display:none!important}@media(max-width:760px){#app:not(.hidden){display:block!important}.workspace-tabs-shell{position:sticky;top:99px;z-index:79;padding:7px 8px;background:rgba(244,248,250,.97);border-bottom:1px solid #d5e2e7}.workspace-tabs{gap:6px}.workspace-tab{height:36px;min-width:96px;max-width:190px;padding-left:11px;font-size:11px;border-radius:10px}.page{padding-top:10px!important}}
 
 
-/* v1.4.1 role-aware UI */
-.permission-hidden{display:none!important}
-.permission-empty{grid-column:1/-1;padding:24px;border:1px dashed #c7dbe1;border-radius:14px;background:#f7fbfc;color:#5d7480;display:flex;flex-direction:column;gap:6px;text-align:center}
-.permission-empty b{color:#244b5a}
-.server-user #health[data-role-access]:after{content:' · ' attr(data-role-access);color:#cde6ee}
+.permission-hidden{display:none!important}.permission-empty{grid-column:1/-1;padding:24px;border:1px dashed #c7dbe1;border-radius:14px;background:#f7fbfc;color:#5d7480;display:flex;flex-direction:column;gap:6px;text-align:center}.permission-empty b{color:#244b5a}
 
 
-/* v1.4.2 account password self-service */
-.account-password-btn{width:100%;margin:8px 0 0;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);color:#fff;min-height:38px;border-radius:10px}.account-password-btn:hover{background:rgba(255,255,255,.16)}
-.password-dialog{border:0;border-radius:20px;padding:0;width:min(480px,calc(100vw - 28px));box-shadow:0 25px 80px rgba(9,30,45,.32)}.password-dialog::backdrop{background:rgba(7,24,37,.58);backdrop-filter:blur(3px)}.password-dialog-card{padding:22px}.password-dialog-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.password-dialog-head h3{margin:0}.password-dialog-close{width:36px;height:36px;border-radius:50%;padding:0}.password-dialog .field{margin-bottom:10px}.password-dialog-note{padding:10px 12px;border-radius:12px;background:#eef8f8;border:1px solid #d1e8ea;color:#45656e;font-size:12px;line-height:1.45}.password-dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.forgot-password-note{font-size:12px;color:#667d88;line-height:1.45;margin-top:10px}
-@media(max-width:760px){.account-password-btn{display:none}.password-dialog-actions{display:grid;grid-template-columns:1fr}.password-dialog-actions button{width:100%;min-height:44px}}
+.account-password-btn{width:100%;margin:8px 0 0;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);color:#fff;min-height:38px;border-radius:10px}.account-password-btn:hover{background:rgba(255,255,255,.16)}.password-dialog{border:0;border-radius:20px;padding:0;width:min(480px,calc(100vw - 28px));box-shadow:0 25px 80px rgba(9,30,45,.32)}.password-dialog::backdrop{background:rgba(7,24,37,.58);backdrop-filter:blur(3px)}.password-dialog-card{padding:22px}.password-dialog-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.password-dialog-head h3{margin:0}.password-dialog-close{width:36px;height:36px;border-radius:50%;padding:0}.password-dialog .field{margin-bottom:10px}.password-dialog-note{padding:10px 12px;border-radius:12px;background:#eef8f8;border:1px solid #d1e8ea;color:#45656e;font-size:12px;line-height:1.45}.password-dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.forgot-password-note{font-size:12px;color:#667d88;line-height:1.45;margin-top:10px}@media(max-width:760px){.account-password-btn{display:none}.password-dialog-actions{display:grid;grid-template-columns:1fr}.password-dialog-actions button{width:100%;min-height:44px}}
 
 </style></head><body><div class="wrap">
 <div class="card"><h1>StokLedger Online</h1><div class="muted">Kelola bisnis dari mana saja</div></div>
@@ -240,9 +218,7 @@ input,select,textarea{border-color:#cbdbe1;background:#fff;transition:border-col
   <button type="button" data-mobile-tab="cash" onclick="openMobileModule('cash',this)"><span class="nav-icon">▣</span><span>Kas</span></button>
   <button type="button" data-mobile-tab="more" onclick="openMobileDrawer(this)"><span class="nav-icon">☰</span><span>Menu</span></button>
 </nav>
-<div id="workspaceTabsShell" class="workspace-tabs-shell" aria-label="Tab fitur terbuka">
-  <div id="workspaceTabs" class="workspace-tabs"></div>
-</div>
+<div id="workspaceTabsShell" class="workspace-tabs-shell" aria-label="Tab fitur terbuka"><div id="workspaceTabs" class="workspace-tabs"></div></div>
 
 <div id="dashboard" class="page active"><div class="card"><h2>Ringkasan Persediaan</h2><div class="row"><div class="stat">Total Barang<b id="sTotal">0</b></div><div class="stat">Barang Aktif<b id="sActive">0</b></div><div class="stat">Stok Minimum<b id="sLow">0</b></div><div class="stat">Nilai Stok<b id="sValue">0</b></div></div></div><div class="card"><h2>Ringkasan Penjualan</h2><div class="row"><div class="stat">Transaksi<b id="ssCount">0</b></div><div class="stat">Total Penjualan<b id="ssTotal">0</b></div><div class="stat">Piutang<b id="ssDue">0</b></div></div></div><div class="card"><div class="table-toolbar"><h2>Analitik Bulan Ini</h2><button onclick="loadDash()">↻ Refresh</button></div><div class="analytics-grid"><div class="profit-chart-panel dashboard-chart-card"><h3>Profit &amp; Loss</h3><canvas id="pie" class="dashboard-chart-canvas" width="560" height="330"></canvas><div id="pieInfo" class="pl-summary"></div></div><div class="dashboard-chart-card"><h3>5 Barang Paling Laku</h3><canvas id="topItemsPie" class="dashboard-chart-canvas" width="420" height="270"></canvas><div id="topItems" class="mini-pie-summary"></div></div><div class="dashboard-chart-card"><h3>5 Top Sales</h3><canvas id="topSalesPie" class="dashboard-chart-canvas" width="420" height="270"></canvas><div id="topSales" class="mini-pie-summary"></div></div></div><div class="reminder-grid"><div><h3>Piutang Jatuh Tempo</h3><table><tbody id="dueAr"></tbody></table></div><div><h3>Hutang Jatuh Tempo</h3><table><tbody id="dueAp"></tbody></table></div><div><h3>Reminder Stok</h3><table><tbody id="lowSt"></tbody></table></div><div><h3>Dead Stock</h3><table><tbody id="deadSt"></tbody></table></div></div></div></div>
 <div id="moduleHome" class="page"><div class="card module-shell"><div class="module-header"><div><p class="eyebrow">MODUL</p><h2 id="moduleTitle">Master Data</h2><p id="moduleDescription" class="muted">Pilih menu yang ingin dibuka.</p></div><button class="secondary" onclick="page('dashboard',document.querySelector('.module-nav button'))">Kembali ke Dashboard</button></div><div id="moduleGrid" class="module-grid"></div></div></div>
@@ -687,7 +663,7 @@ input,select,textarea{border-color:#cbdbe1;background:#fff;transition:border-col
 <script>const byId=id=>document.getElementById(id);
 function safeValue(id,def=''){const el=byId(id);return el?el.value:def}
 
-let token=sessionStorage.getItem('slp_token')||localStorage.getItem('slp_token')||'',deviceId=localStorage.getItem('slp_device_id')||'';if(token){sessionStorage.setItem('slp_token',token);localStorage.removeItem('slp_token')}let __tokenCompatDummy='',heartbeatTimer=null,currentUser=null,products=[],transactionProducts=[],partners=[],warehouses=[],purchaseLines=[],cashAccounts=[],brands=[],salespersons=[];const rup=n=>new Intl.NumberFormat('id-ID').format(Number(n||0));async function api(p,o={}){o.headers=Object.assign({'Content-Type':'application/json'},o.headers||{});if(token)o.headers.Authorization='Bearer '+token;let r=await fetch(p,o),t=await r.text(),d={};try{d=JSON.parse(t)}catch(e){d={error:t}}if(!r.ok)throw Error(d.error||'HTTP '+r.status);return d}function msg(el,text,ok=true){el.className=ok?'ok':'error';el.textContent=text}function ensureDeviceId(){if(!deviceId){deviceId=(crypto&&crypto.randomUUID)?crypto.randomUUID():'DEV-'+Date.now()+'-'+Math.random().toString(36).slice(2);localStorage.setItem('slp_device_id',deviceId)}return deviceId}
+let token=sessionStorage.getItem('slp_token')||localStorage.getItem('slp_token')||'',deviceId=localStorage.getItem('slp_device_id')||'';if(token){sessionStorage.setItem('slp_token',token);sessionStorage.removeItem('slp_token');localStorage.removeItem('slp_token')}let __tokenCompatDummy='',heartbeatTimer=null,currentUser=null,products=[],transactionProducts=[],partners=[],warehouses=[],purchaseLines=[],cashAccounts=[],brands=[],salespersons=[];const rup=n=>new Intl.NumberFormat('id-ID').format(Number(n||0));async function api(p,o={}){o.headers=Object.assign({'Content-Type':'application/json'},o.headers||{});if(token)o.headers.Authorization='Bearer '+token;let r=await fetch(p,o),t=await r.text(),d={};try{d=JSON.parse(t)}catch(e){d={error:t}}if(!r.ok)throw Error(d.error||'HTTP '+r.status);return d}function msg(el,text,ok=true){el.className=ok?'ok':'error';el.textContent=text}function ensureDeviceId(){if(!deviceId){deviceId=(crypto&&crypto.randomUUID)?crypto.randomUUID():'DEV-'+Date.now()+'-'+Math.random().toString(36).slice(2);localStorage.setItem('slp_device_id',deviceId)}return deviceId}
 function installTypeToSearchSelects(){
   if(window.__slTypeSearchInstalled)return;window.__slTypeSearchInstalled=true;
   const transactionPages=new Set(['sales','purchases','receivables','payables','cash','purchaseReturns','salesReturns','ordersDp','inventory','stock','accounting','transactionMaintenance']);
@@ -733,82 +709,14 @@ function installTypeToSearchSelects(){
 }
 function showAuthPane(kind){let loginMode=kind!=='signup';authLoginPane.classList.toggle('active',loginMode);authSignupPane.classList.toggle('active',!loginMode);authLoginTab.classList.toggle('active',loginMode);authSignupTab.classList.toggle('active',!loginMode)}async function createTrialAccount(){try{signupMsg.textContent='Menyiapkan akun trial Anda...';signupMsg.className='muted';let d=await api('/api/signup',{method:'POST',body:JSON.stringify({company_name:signupCompany.value,owner_name:signupName.value,email:signupEmail.value,phone:signupPhone.value,password:signupPassword.value})});msg(signupMsg,'Akun berhasil dibuat. Trial 7 hari aktif sampai '+new Date(d.account.trial_expires_at).toLocaleDateString('id-ID')+'. Silakan login.',true);username.value=signupEmail.value;password.value=signupPassword.value;setTimeout(()=>showAuthPane('login'),500)}catch(e){msg(signupMsg,e.message,false)}}async function doLogin(){try{let d=await api('/api/login',{method:'POST',body:JSON.stringify({username:username.value,password:password.value,client_name:navigator.userAgent.includes('Mobile')?'mobile-browser':'desktop-browser',device_id:ensureDeviceId()})});token=d.token;sessionStorage.setItem('slp_token',token);window.__currentAccount=d.account||null;openApp(d.user)}catch(e){msg(loginMsg,e.message,false)}}function hasPermission(code){const p=currentUser&&currentUser.role&&Array.isArray(currentUser.role.permissions)?currentUser.role.permissions:[];return p.includes('*')||p.includes(code)}
 function hasAnyPermission(codes=[]){const p=currentUser&&currentUser.role&&Array.isArray(currentUser.role.permissions)?currentUser.role.permissions:[];return p.includes('*')||codes.some(code=>p.includes(code))}
-const modulePermissionMap={
- dashboard:['dashboard.view'],
- master:['inventory.view','inventory.manage','services.view','services.manage','departments.view','departments.manage','partners.view','partners.manage'],
- sales:['sales.view','sales.manage','receivables.view','receivables.manage'],
- purchases:['purchases.view','purchases.manage','payables.view','payables.manage'],
- cash:['cash.view','cash.manage'],
- inventory:['inventory.view','inventory.manage'],
- assembly:['inventory.manage'],
- fixedassets:['accounting.view','accounting.manage'],
- project:['projects.view','projects.manage'],
- accounting:['accounting.view','accounting.manage'],
- reports:['reports.view'],
- system:['settings.view','settings.manage','users.manage','audit.view']
-};
-const moduleItemPermissionMap={
- master:{
-  'Tingkatan Harga':['inventory.view','inventory.manage'],'Impor Data Excel':['inventory.manage','partners.manage','services.manage'],
-  'Master Departemen':['departments.view','departments.manage'],'Data Barang':['inventory.view','inventory.manage'],
-  'Daftar Jasa':['services.view','services.manage'],'Data Pelanggan':['partners.view','partners.manage'],
-  'Data Pemasok':['partners.view','partners.manage'],'Data Merk':['inventory.view','inventory.manage'],
-  'Data Salesman':['partners.view','partners.manage'],'Daftar Nama Gudang':['inventory.view','inventory.manage'],
-  'Kategori & Satuan':['inventory.view','inventory.manage']
- },
- sales:{
-  'Pesanan & DP Penjualan':['sales.manage'],'Input Penjualan Baru':['sales.manage'],'Daftar Penjualan':['sales.view','sales.manage'],
-  'Retur Penjualan':['sales.manage'],'Penerimaan Piutang Pelanggan':['receivables.manage'],'Daftar Penerimaan Piutang':['receivables.view','receivables.manage']
- },
- purchases:{
-  'Pesanan & DP Pembelian':['purchases.manage'],'Input Pembelian Baru':['purchases.manage'],'Daftar Pembelian':['purchases.view','purchases.manage'],
-  'Retur Pembelian':['purchases.manage'],'Pembayaran Hutang Pemasok':['payables.manage'],'Daftar Pembayaran Hutang':['payables.view','payables.manage']
- },
- cash:{
-  'Daftar Kas Masuk/Keluar':['cash.view','cash.manage'],'Daftar Transfer Kas/Bank':['cash.view','cash.manage'],
-  'Kas Masuk / Keluar':['cash.manage'],'Transfer Antar Akun':['cash.manage'],'Smart Import Rekening Koran':['cash.manage']
- },
- inventory:{
-  'Kartu & Saldo Stok':['inventory.view','inventory.manage'],'Daftar Adjustment Stok':['inventory.view','inventory.manage'],
-  'Daftar Transfer Gudang':['inventory.view','inventory.manage'],'Adjustment Stok':['inventory.manage'],'Transfer Gudang':['inventory.manage']
- },
- assembly:{'Input Assembly Baru':['inventory.manage'],'Daftar & Finishing Assembly':['inventory.manage']},
- fixedassets:{'Aktiva Tetap Baru':['accounting.manage'],'Daftar Aktiva Tetap':['accounting.view','accounting.manage'],'Penyusutan Otomatis':['accounting.manage']},
- project:{
-  'Daftar Proyek':['projects.view','projects.manage'],'Budget & Realisasi Proyek':['projects.view','projects.manage'],
-  'Daftar Pengeluaran Material Proyek':['projects.manage'],'Dokumen Proyek':['projects.view','projects.manage']
- },
- accounting:{
-  'Data COA':['accounting.view','accounting.manage'],'Daftar Jurnal Manual':['accounting.view','accounting.manage'],
-  'Jurnal Manual':['accounting.manage'],'Buku Besar':['accounting.view','accounting.manage'],'Neraca Saldo':['accounting.view','accounting.manage']
- },
- reports:{
-  'Laporan Proyek':['reports.view'],'Laporan Penjualan':['reports.view'],'Laporan Pembelian':['reports.view'],
-  'Laporan Stok Barang':['reports.view'],'Laporan Keuangan':['reports.view'],'Laporan Kas Bank':['reports.view']
- },
- system:{
-  'Trial & Langganan':['__ADMIN__'],'User & Hak Akses':['users.manage'],'Audit Log':['audit.view'],
-  'Profil Perusahaan':['settings.view','settings.manage'],'Desain Dokumen':['settings.view','settings.manage'],'Desain Invoice Fleksibel':['settings.view','settings.manage']
- }
-};
-const pagePermissionMap={
- dashboard:['dashboard.view'],products:['inventory.view','inventory.manage'],servicesPage:['services.view','services.manage'],customersPage:['partners.view','partners.manage'],suppliersPage:['partners.view','partners.manage'],departments:['departments.view','departments.manage'],priceLevels:['inventory.view','inventory.manage'],masterImport:['inventory.manage','partners.manage','services.manage'],
- sales:['sales.view','sales.manage'],receivables:['receivables.view','receivables.manage'],purchases:['purchases.view','purchases.manage'],payables:['payables.view','payables.manage'],cash:['cash.view','cash.manage'],smartImport:['cash.manage'],stock:['inventory.view','inventory.manage'],assembly:['inventory.manage'],
- fixedAssetPage:['accounting.view','accounting.manage'],fixedAssetDepPage:['accounting.manage'],projects:['projects.view','projects.manage'],projectBudgets:['projects.view','projects.manage'],projectMaterialIssues:['projects.manage'],projectDocuments:['projects.view','projects.manage'],projectReports:['reports.view'],
- accounting:['accounting.view','accounting.manage'],reportsPage:['reports.view'],users:['users.manage'],audit:['audit.view'],settings:['settings.view','settings.manage'],docDesign:['settings.view','settings.manage'],flexInvoiceDesigner:['settings.view','settings.manage'],subscriptionAdmin:['__ADMIN__']
-};
+const modulePermissionMap={dashboard:['dashboard.view'],master:['inventory.view','inventory.manage','services.view','services.manage','departments.view','departments.manage','partners.view','partners.manage'],sales:['sales.view','sales.manage','receivables.view','receivables.manage'],purchases:['purchases.view','purchases.manage','payables.view','payables.manage'],cash:['cash.view','cash.manage'],inventory:['inventory.view','inventory.manage'],assembly:['inventory.manage'],fixedassets:['accounting.view','accounting.manage'],project:['projects.view','projects.manage'],accounting:['accounting.view','accounting.manage'],reports:['reports.view'],system:['settings.view','settings.manage','users.manage','audit.view']};
+const moduleItemPermissionMap={master:{'Tingkatan Harga':['inventory.view','inventory.manage'],'Impor Data Excel':['inventory.manage','partners.manage','services.manage'],'Master Departemen':['departments.view','departments.manage'],'Data Barang':['inventory.view','inventory.manage'],'Daftar Jasa':['services.view','services.manage'],'Data Pelanggan':['partners.view','partners.manage'],'Data Pemasok':['partners.view','partners.manage'],'Data Merk':['inventory.view','inventory.manage'],'Data Salesman':['partners.view','partners.manage'],'Daftar Nama Gudang':['inventory.view','inventory.manage'],'Kategori & Satuan':['inventory.view','inventory.manage']},sales:{'Pesanan & DP Penjualan':['sales.manage'],'Input Penjualan Baru':['sales.manage'],'Daftar Penjualan':['sales.view','sales.manage'],'Retur Penjualan':['sales.manage'],'Penerimaan Piutang Pelanggan':['receivables.manage'],'Daftar Penerimaan Piutang':['receivables.view','receivables.manage']},purchases:{'Pesanan & DP Pembelian':['purchases.manage'],'Input Pembelian Baru':['purchases.manage'],'Daftar Pembelian':['purchases.view','purchases.manage'],'Retur Pembelian':['purchases.manage'],'Pembayaran Hutang Pemasok':['payables.manage'],'Daftar Pembayaran Hutang':['payables.view','payables.manage']},cash:{'Daftar Kas Masuk/Keluar':['cash.view','cash.manage'],'Daftar Transfer Kas/Bank':['cash.view','cash.manage'],'Kas Masuk / Keluar':['cash.manage'],'Transfer Antar Akun':['cash.manage'],'Smart Import Rekening Koran':['cash.manage']},inventory:{'Kartu & Saldo Stok':['inventory.view','inventory.manage'],'Daftar Adjustment Stok':['inventory.view','inventory.manage'],'Daftar Transfer Gudang':['inventory.view','inventory.manage'],'Adjustment Stok':['inventory.manage'],'Transfer Gudang':['inventory.manage']},assembly:{'Input Assembly Baru':['inventory.manage'],'Daftar & Finishing Assembly':['inventory.manage']},fixedassets:{'Aktiva Tetap Baru':['accounting.manage'],'Daftar Aktiva Tetap':['accounting.view','accounting.manage'],'Penyusutan Otomatis':['accounting.manage']},project:{'Daftar Proyek':['projects.view','projects.manage'],'Budget & Realisasi Proyek':['projects.view','projects.manage'],'Daftar Pengeluaran Material Proyek':['projects.manage'],'Dokumen Proyek':['projects.view','projects.manage']},accounting:{'Data COA':['accounting.view','accounting.manage'],'Daftar Jurnal Manual':['accounting.view','accounting.manage'],'Jurnal Manual':['accounting.manage'],'Buku Besar':['accounting.view','accounting.manage'],'Neraca Saldo':['accounting.view','accounting.manage']},reports:{'Laporan Proyek':['reports.view'],'Laporan Penjualan':['reports.view'],'Laporan Pembelian':['reports.view'],'Laporan Stok Barang':['reports.view'],'Laporan Keuangan':['reports.view'],'Laporan Kas Bank':['reports.view']},system:{'Trial & Langganan':['__ADMIN__'],'User & Hak Akses':['users.manage'],'Audit Log':['audit.view'],'Profil Perusahaan':['settings.view','settings.manage'],'Desain Dokumen':['settings.view','settings.manage'],'Desain Invoice Fleksibel':['settings.view','settings.manage']}};
+const pagePermissionMap={dashboard:['dashboard.view'],products:['inventory.view','inventory.manage'],servicesPage:['services.view','services.manage'],customersPage:['partners.view','partners.manage'],suppliersPage:['partners.view','partners.manage'],departments:['departments.view','departments.manage'],priceLevels:['inventory.view','inventory.manage'],masterImport:['inventory.manage','partners.manage','services.manage'],sales:['sales.view','sales.manage'],receivables:['receivables.view','receivables.manage'],purchases:['purchases.view','purchases.manage'],payables:['payables.view','payables.manage'],cash:['cash.view','cash.manage'],smartImport:['cash.manage'],stock:['inventory.view','inventory.manage'],assembly:['inventory.manage'],fixedAssetPage:['accounting.view','accounting.manage'],fixedAssetDepPage:['accounting.manage'],projects:['projects.view','projects.manage'],projectBudgets:['projects.view','projects.manage'],projectMaterialIssues:['projects.manage'],projectDocuments:['projects.view','projects.manage'],projectReports:['reports.view'],accounting:['accounting.view','accounting.manage'],reportsPage:['reports.view'],users:['users.manage'],audit:['audit.view'],settings:['settings.view','settings.manage'],docDesign:['settings.view','settings.manage'],flexInvoiceDesigner:['settings.view','settings.manage'],subscriptionAdmin:['__ADMIN__']};
 function canAccessModule(key){return hasAnyPermission(modulePermissionMap[key]||[])}
 function canAccessModuleItem(key,item){const title=Array.isArray(item)?item[1]:'';const needs=moduleItemPermissionMap[key]?.[title]||modulePermissionMap[key]||[];if(needs.includes('__ADMIN__'))return currentUser?.role?.code==='ADMIN';return hasAnyPermission(needs)}
 function canAccessPage(id){const needs=pagePermissionMap[id];if(!needs)return true;if(needs.includes('__ADMIN__'))return currentUser?.role?.code==='ADMIN';return hasAnyPermission(needs)}
 function firstAccessibleModule(){return Object.keys(moduleMenus||{}).find(canAccessModule)||null}
-function applyRoleFeatureVisibility(){
- const nav=document.querySelector('.sidebar .module-nav');
- if(nav){[...nav.querySelectorAll('button')].forEach(btn=>{const click=btn.getAttribute('onclick')||'';let allowed=true;if(click.includes("page('dashboard'"))allowed=canAccessModule('dashboard');else{const m=click.match(/showModule\('([^']+)'/);if(m)allowed=canAccessModule(m[1])}btn.classList.toggle('permission-hidden',!allowed);btn.hidden=!allowed})}
- document.querySelectorAll('.mobile-tabbar button').forEach(btn=>{const key=btn.dataset.mobileTab;let allowed=true;if(key==='dashboard')allowed=canAccessModule('dashboard');else if(['sales','purchases','cash'].includes(key))allowed=canAccessModule(key);btn.hidden=!allowed;btn.classList.toggle('permission-hidden',!allowed)});
- const visibleMobile=[...document.querySelectorAll('.mobile-tabbar button')].filter(x=>!x.hidden).length;if(window.mobileTabbar&&visibleMobile)mobileTabbar.style.gridTemplateColumns=`repeat(${visibleMobile},minmax(0,1fr))`;
- renderMobileDrawerMenu();
- const role=currentUser?.role?.name||'-',count=(currentUser?.role?.permissions||[]).includes('*')?'Semua':String((currentUser?.role?.permissions||[]).length);if(window.health)health.dataset.roleAccess=`${role} · ${count} akses`;
-}
+function applyRoleFeatureVisibility(){const nav=document.querySelector('.sidebar .module-nav');if(nav){[...nav.querySelectorAll('button')].forEach(btn=>{const click=btn.getAttribute('onclick')||'';let allowed=true;if(click.includes("page('dashboard'"))allowed=canAccessModule('dashboard');else{const m=click.match(/showModule\('([^']+)'/);if(m)allowed=canAccessModule(m[1])}btn.classList.toggle('permission-hidden',!allowed);btn.hidden=!allowed})}document.querySelectorAll('.mobile-tabbar button').forEach(btn=>{const key=btn.dataset.mobileTab;let allowed=true;if(key==='dashboard')allowed=canAccessModule('dashboard');else if(['sales','purchases','cash'].includes(key))allowed=canAccessModule(key);btn.hidden=!allowed;btn.classList.toggle('permission-hidden',!allowed)});const visibleMobile=[...document.querySelectorAll('.mobile-tabbar button')].filter(x=>!x.hidden).length;if(window.mobileTabbar&&visibleMobile)mobileTabbar.style.gridTemplateColumns=`repeat(${visibleMobile},minmax(0,1fr))`;renderMobileDrawerMenu()}
 async function openApp(u){installTypeToSearchSelects();currentUser=u;const perms=(u&&u.role&&Array.isArray(u.role.permissions))?u.role.permissions:[];document.body.classList.toggle('hide-cost',!(perms.includes('*')||perms.includes('cost.view')));authShell.classList.add('hidden');authShell.setAttribute('aria-hidden','true');app.classList.remove('hidden');app.setAttribute('aria-hidden','false');resetWorkspaceTabs();applyRoleFeatureVisibility();window.scrollTo(0,0);who.textContent=u.username+' · '+u.role.name;startHeartbeat();await refreshAll();await refreshSubscriptionChip();if(u.must_change_password)setTimeout(()=>openPasswordDialog(true),250);if(canAccessModule('dashboard')){page('dashboard',getDesktopNavButtonByKey('dashboard')||document.querySelector('.sidebar .module-nav button:not([hidden])'),{skipRefresh:true})}else{const first=firstAccessibleModule();if(first)showModule(first,getDesktopNavButtonByKey(first));else{document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));if(window.workspaceTabsShell)workspaceTabsShell.classList.add('hidden')}}}function openPartnerPage(type,b){partnerFilter.value=type;page('partners',b);loadPartners()}function clearTransactionEditState(){window.__maintenanceEdit=null;window.__documentEdit=null;window.__salesReturnEdit=null;window.__purchaseReturnEdit=null}
 function discardTransactionDraftForPage(id){
  if(id==='sales'){
@@ -828,11 +736,11 @@ const workspaceTabTitleMap={dashboard:'Dashboard',products:'Barang',partners:'Pe
 const workspaceEditKeys=['__maintenanceEdit','__documentEdit','__salesReturnEdit','__purchaseReturnEdit','__sourceSalesOrderId','__sourcePurchaseOrderId','__fixedAssetEdit','__projectMaterialEdit'];
 window.__workspaceTabs=['dashboard'];window.__workspaceScroll={dashboard:0};window.__workspaceEditState={};
 function isWorkspacePage(id){return !!id&&id!=='moduleHome'&&document.getElementById(id)?.classList.contains('page')}
-function workspaceTitle(id){if(workspaceTabTitleMap[id])return workspaceTabTitleMap[id];const el=document.getElementById(id);const h=el?.querySelector('h2,h1,h3');let v=(h?.textContent||id||'Halaman').trim().replace(/\s+/g,' ');return v.length>28?v.slice(0,27)+'…':v}
+function workspaceTitle(id){if(workspaceTabTitleMap[id])return workspaceTabTitleMap[id];const el=document.getElementById(id);const h=el?.querySelector('h2,h1,h3');let v=(h?.textContent||id||'Halaman').trim().replace(/\\s+/g,' ');return v.length>28?v.slice(0,27)+'…':v}
 function saveWorkspaceState(id){if(!id)return;window.__workspaceScroll[id]=window.scrollY||0;const state={};workspaceEditKeys.forEach(k=>state[k]=window[k]);window.__workspaceEditState[id]=state}
 function restoreWorkspaceState(id){const state=window.__workspaceEditState[id];if(!state)return;workspaceEditKeys.forEach(k=>window[k]=state[k])}
 function ensureWorkspaceTab(id){if(!isWorkspacePage(id))return false;if(!window.__workspaceTabs.includes(id)){window.__workspaceTabs.push(id);renderWorkspaceTabs();return true}renderWorkspaceTabs();return false}
-function renderWorkspaceTabs(){const host=document.getElementById('workspaceTabs');if(!host)return;window.__workspaceTabs=window.__workspaceTabs.filter(id=>canAccessPage(id));host.innerHTML=window.__workspaceTabs.map(id=>`<button type="button" class="workspace-tab ${id===window.__activePageId?'active':''} ${id==='dashboard'?'pinned':''}" data-workspace-tab="${id}" onclick="switchWorkspaceTab('${id}')" title="${accessEscape(workspaceTitle(id))}"><span class="workspace-tab-label">${accessEscape(workspaceTitle(id))}</span>${id==='dashboard'?'':`<span class="workspace-tab-close" role="button" aria-label="Tutup ${accessEscape(workspaceTitle(id))}" onclick="event.stopPropagation();closeWorkspaceTab('${id}')">×</span>`}</button>`).join('');const active=host.querySelector('.workspace-tab.active');if(active)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}))}
+function renderWorkspaceTabs(){const host=document.getElementById('workspaceTabs');if(!host)return;window.__workspaceTabs=window.__workspaceTabs.filter(id=>canAccessPage(id));host.innerHTML=window.__workspaceTabs.map(id=>`<button type="button" class="workspace-tab ${id===window.__activePageId?'active':''} ${id==='dashboard'?'pinned':''}" data-workspace-tab="${id}" onclick="switchWorkspaceTab('${id}')" title="${accessEscape(workspaceTitle(id))}"><span class="workspace-tab-label">${accessEscape(workspaceTitle(id))}</span>${id==='dashboard'?'':`<span class="workspace-tab-close" role="button" onclick="event.stopPropagation();closeWorkspaceTab('${id}')">×</span>`}</button>`).join('');const active=host.querySelector('.workspace-tab.active');if(active)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}))}
 function switchWorkspaceTab(id){page(id,null,{fromTab:true,skipRefresh:true})}
 function closeWorkspaceTab(id){if(!id||id==='dashboard'){switchWorkspaceTab('dashboard');return}const wasActive=window.__activePageId===id;const current=window.__activePageId;saveWorkspaceState(current);const activeState=current?window.__workspaceEditState[current]:null;discardTransactionDraftForPage(id);delete window.__workspaceEditState[id];delete window.__workspaceScroll[id];const idx=window.__workspaceTabs.indexOf(id);if(idx>=0)window.__workspaceTabs.splice(idx,1);if(activeState&&current&&current!==id){workspaceEditKeys.forEach(k=>window[k]=activeState[k])}if(wasActive){const next=window.__workspaceTabs[Math.max(0,Math.min(idx-1,window.__workspaceTabs.length-1))]||'dashboard';window.__activePageId='';page(next,null,{fromTab:true,skipRefresh:true})}else renderWorkspaceTabs()}
 function resetWorkspaceTabs(){const home=canAccessModule('dashboard')?'dashboard':null;window.__workspaceTabs=home?[home]:[];window.__workspaceScroll=home?{dashboard:0}:{};window.__workspaceEditState={};window.__activePageId=home||'';renderWorkspaceTabs()}
@@ -843,7 +751,7 @@ async function refreshAll(){
  const safe=async(label,fn)=>{try{return await fn()}catch(e){console.error('Startup '+label+' gagal:',e);return null}};
  const today=new Date().toISOString().slice(0,10);
  const h=await safe('health',()=>api('/api/health'));
- if(h){let lic=h.license||{};let licText=lic.mode==='SUBSCRIPTION'?((lic.plan_name||'LANGGANAN')+' · '+(lic.days_remaining??0)+' hari · '+(lic.max_users??2)+' user'):(lic.mode==='TRIAL'?('TRIAL 7 HARI · sisa '+(lic.days_remaining??0)+' hari · '+(lic.max_users??2)+' user'):(lic.mode==='TRIAL_EXPIRED'||lic.mode==='SUBSCRIPTION_EXPIRED'?'MASA AKSES BERAKHIR':'LISENSI'));if(window.health)health.textContent='Online · v'+h.version+' · port '+h.port+' · '+licText}
+ if(h){let lic=h.license||{};let licText=lic.mode==='SUBSCRIPTION'?((lic.plan_name||'LANGGANAN')+' · '+(lic.days_remaining??0)+' hari · '+(lic.max_users??2)+' user'):(lic.mode==='TRIAL'?('TRIAL 7 HARI · sisa '+(lic.days_remaining??0)+' hari · '+(lic.max_users??2)+' user'):(lic.mode==='TRIAL_EXPIRED'||lic.mode==='SUBSCRIPTION_EXPIRED'?'MASA AKSES BERAKHIR':'LISENSI'));if(window.health)health.textContent='Online'}
  const setValue=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v};
  ['saleDate','rpDate','phDate','jDate','purchaseDate','cashDate','transferDate'].forEach(id=>setValue(id,today));setValue('ledgerTo',today);setValue('trialTo',today);setValue('saleDue','');setValue('purchaseDue','');
  await safe('nomor dokumen',loadDocumentNumbers);
@@ -852,22 +760,7 @@ async function refreshAll(){
  // Dropdown transaksi dimuat langsung, terpisah dari halaman daftar partner.
  await safe('pelanggan/pemasok transaksi',loadTransactionPartners);
  await safe('daftar partner',loadPartners);await safe('master settlement',loadSettlementMasters);
- await Promise.allSettled([
-  hasAnyPermission(['receivables.view','receivables.manage'])?loadReceivables():Promise.resolve(),
-  hasAnyPermission(['payables.view','payables.manage'])?loadPayables():Promise.resolve(),
-  hasAnyPermission(['accounting.view','accounting.manage'])?loadAccounting():Promise.resolve(),
-  hasAnyPermission(['accounting.view','accounting.manage'])?loadTrial():Promise.resolve(),
-  hasAnyPermission(['sales.view','sales.manage','purchases.view','purchases.manage'])?loadSummary():Promise.resolve(),
-  hasAnyPermission(['sales.view','sales.manage'])?loadSales():Promise.resolve(),
-  hasAnyPermission(['purchases.view','purchases.manage'])?loadPurchases():Promise.resolve(),
-  hasAnyPermission(['cash.view','cash.manage'])?loadCashTransactions():Promise.resolve(),
-  hasAnyPermission(['inventory.view','inventory.manage'])?loadMoves():Promise.resolve(),
-  hasAnyPermission(['inventory.view','inventory.manage'])?loadBalances():Promise.resolve(),
-  hasAnyPermission(['inventory.view','inventory.manage'])?loadInventoryCard():Promise.resolve(),
-  hasPermission('users.manage')?loadUsers():Promise.resolve(),
-  hasPermission('audit.view')?loadAudit():Promise.resolve(),
-  hasPermission('dashboard.view')&&typeof loadDash==='function'?loadDash():Promise.resolve()
-]);
+ await Promise.allSettled([hasAnyPermission(['receivables.view','receivables.manage'])?loadReceivables():Promise.resolve(),hasAnyPermission(['payables.view','payables.manage'])?loadPayables():Promise.resolve(),hasAnyPermission(['accounting.view','accounting.manage'])?loadAccounting():Promise.resolve(),hasAnyPermission(['accounting.view','accounting.manage'])?loadTrial():Promise.resolve(),hasAnyPermission(['sales.view','sales.manage','purchases.view','purchases.manage'])?loadSummary():Promise.resolve(),hasAnyPermission(['sales.view','sales.manage'])?loadSales():Promise.resolve(),hasAnyPermission(['purchases.view','purchases.manage'])?loadPurchases():Promise.resolve(),hasAnyPermission(['cash.view','cash.manage'])?loadCashTransactions():Promise.resolve(),hasAnyPermission(['inventory.view','inventory.manage'])?loadMoves():Promise.resolve(),hasAnyPermission(['inventory.view','inventory.manage'])?loadBalances():Promise.resolve(),hasAnyPermission(['inventory.view','inventory.manage'])?loadInventoryCard():Promise.resolve(),hasPermission('users.manage')?loadUsers():Promise.resolve(),hasPermission('audit.view')?loadAudit():Promise.resolve(),hasPermission('dashboard.view')&&typeof loadDash==='function'?loadDash():Promise.resolve()]);
  const lines=document.getElementById('saleLines');if(lines&&!lines.children.length)try{addSaleLine()}catch(e){console.error('Baris penjualan awal gagal:',e)}
 }async function loadSettlementMasters(){
  const [customers,suppliers]=await Promise.all([api('/api/customers?active=1'),api('/api/suppliers?active=1')]);
@@ -1534,7 +1427,7 @@ async function resetExistingUserPassword(id,usernameValue){
     });
     msg(
       accessElement('uMsg'),
-      `Password ${usernameValue} berhasil direset. User wajib mengganti password saat login berikutnya.`
+      `Password ${usernameValue} berhasil direset.`
     );
   }catch(error){
     msg(accessElement('uMsg'),error.message,false);
@@ -2383,7 +2276,7 @@ let passwordChangeForced=false;
 function openPasswordDialog(force=false){passwordChangeForced=!!force;myCurrentPassword.value='';myNewPassword.value='';myConfirmPassword.value='';passwordChangeMsg.textContent='';passwordForceNote.classList.toggle('hidden',!passwordChangeForced);passwordDialogSubtitle.textContent=passwordChangeForced?'Buat password baru untuk melanjutkan.':'Ganti password akun yang sedang digunakan.';passwordDialogClose.classList.toggle('hidden',passwordChangeForced);passwordCancelBtn.classList.toggle('hidden',passwordChangeForced);if(!changePasswordDialog.open)changePasswordDialog.showModal();setTimeout(()=>myCurrentPassword.focus(),50)}
 async function saveMyPassword(){try{const current=myCurrentPassword.value,newPass=myNewPassword.value,confirmPass=myConfirmPassword.value;if(!current)throw Error('Password saat ini wajib diisi.');if(newPass.length<8)throw Error('Password baru minimal 8 karakter.');if(newPass!==confirmPass)throw Error('Konfirmasi password baru tidak sama.');await api('/api/me/change-password',{method:'POST',body:JSON.stringify({current_password:current,new_password:newPass})});if(currentUser)currentUser.must_change_password=false;passwordChangeForced=false;msg(passwordChangeMsg,'Password berhasil diubah.',true);setTimeout(()=>changePasswordDialog.close(),500)}catch(e){msg(passwordChangeMsg,e.message,false)}}
 changePasswordDialog.addEventListener('cancel',e=>{if(passwordChangeForced)e.preventDefault()});
-async function refreshSubscriptionChip(){try{let x=await api('/api/license-status');let label=x.mode==='SUBSCRIPTION'?((x.plan_name||'Langganan')+' · '+x.days_remaining+' hari'):x.mode==='TRIAL'?('Trial · '+x.days_remaining+' hari'):('Masa akses berakhir');if(window.webSubscriptionChip)webSubscriptionChip.textContent=label+' · '+(x.max_users||2)+' user'}catch(e){}}
+async function refreshSubscriptionChip(){try{let x=await api('/api/license-status');let label=x.mode==='SUBSCRIPTION'?((x.plan_name||'Langganan')+' · sisa '+Math.max(0,Number(x.days_remaining||0))+' hari'):x.mode==='TRIAL'?('Trial 7 hari · sisa '+Math.max(0,Number(x.days_remaining||0))+' hari'):('Masa akses berakhir');if(window.webSubscriptionChip)webSubscriptionChip.textContent=label+' · '+(x.max_users||2)+' user'}catch(e){}}
 async function openSubscriptionAdmin(){if(!currentUser||currentUser.role?.code!=='ADMIN'){alert('Menu ini khusus Administrator.');return}page('subscriptionAdmin');await loadSubscriptionAdmin()}
 async function loadSubscriptionAdmin(){try{let x=await api('/api/subscription-admin');subStatus.textContent=x.mode==='SUBSCRIPTION'?(x.plan_name||'Aktif'):x.mode;subDays.textContent=x.days_remaining??0;subUsers.textContent=x.max_users??2;let ex=x.mode==='TRIAL'?x.trial_expires_at:x.expires_at;subExpiry.textContent=ex?new Date(ex).toLocaleDateString('id-ID'):'-';updateSubPrice()}catch(e){msg(subMsg,e.message,false)}}
 function updateSubPrice(){let year=subPlan?.value==='YEAR',base=year?2000000:1200000,add=year?200000:100000,n=Math.max(0,Number(subAddon?.value||0)),total=base+n*add;if(window.subPriceInfo)subPriceInfo.innerHTML=`Paket dasar: <b>${rup(base)}</b> · Add-on ${n} user: <b>${rup(n*add)}</b> · Total aktivasi: <b>${rup(total)}</b> · Total user: <b>${2+n}</b>`}

@@ -36,8 +36,6 @@ def login(username,password,ip,client_name="browser",device_id=None,user_agent=N
     if IS_POSTGRES and not account:
         account,tenant_username=saas.account_for_user_login(raw_username)
     if IS_POSTGRES and not account:
-        # Production SaaS must never fall back to the public/bootstrap schema.
-        # Every application login has to resolve to a registered tenant.
         set_tenant_schema(None)
         return None
     if account:
@@ -128,9 +126,7 @@ def force_logout_session(session_id):
 def authenticate(token):
     if not token: return None
     info=_activate_session_tenant(token)
-    if IS_POSTGRES and not info:
-        # Reject legacy/public-schema sessions in SaaS production mode.
-        return None
+    if IS_POSTGRES and not info:return None
     if info and str(info.get('account_status') or '').upper()=='SUSPENDED': return None
     c=connect()
     try:
@@ -2122,16 +2118,13 @@ def reset_user_password(actor,user_id,new_password,ip):
 
 
 def change_own_password(actor,current_password,new_password,ip):
-    current_password=str(current_password or "")
-    new_password=str(new_password or "")
+    current_password=str(current_password or "");new_password=str(new_password or "")
     if len(new_password)<8: raise ValueError("Password baru minimal 8 karakter.")
     if current_password==new_password: raise ValueError("Password baru harus berbeda dari password lama.")
     with write_transaction() as tx:
         user=tx.execute("SELECT id,username,password_hash FROM users WHERE id=?",(int(actor["id"]),)).fetchone()
-        if not user or not verify_password(current_password,user["password_hash"]):
-            raise ValueError("Password saat ini tidak sesuai.")
-        tx.execute("UPDATE users SET password_hash=?,must_change_password=0,updated_at=? WHERE id=?",
-          (hash_password(new_password),utc_now(),int(actor["id"])))
+        if not user or not verify_password(current_password,user["password_hash"]):raise ValueError("Password saat ini tidak sesuai.")
+        tx.execute("UPDATE users SET password_hash=?,must_change_password=0,updated_at=? WHERE id=?",(hash_password(new_password),utc_now(),int(actor["id"])))
         audit(actor["id"],"USER_PASSWORD_CHANGED","user",actor["id"],{"username":user["username"]},ip,tx)
     return True
 

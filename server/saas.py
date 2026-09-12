@@ -109,10 +109,7 @@ def ensure_schema():
 def security_audit(event_type, account_id=None, identifier='', client_ip='', details=None):
     try:
         ensure_schema(); c=_public()
-        try:
-            c.execute("INSERT INTO saas_security_audit(event_type,account_id,identifier,client_ip,details_json,created_at) VALUES(?,?,?,?,?,?)",
-              (str(event_type or '')[:80],int(account_id) if account_id else None,str(identifier or '')[:180],str(client_ip or '')[:80],json.dumps(details or {},ensure_ascii=False),_iso()))
-            c.commit()
+        try:c.execute("INSERT INTO saas_security_audit(event_type,account_id,identifier,client_ip,details_json,created_at) VALUES(?,?,?,?,?,?)",(str(event_type or '')[:80],int(account_id) if account_id else None,str(identifier or '')[:180],str(client_ip or '')[:80],json.dumps(details or {},ensure_ascii=False),_iso()));c.commit()
         finally:c.close()
         return True
     except Exception:return False
@@ -120,7 +117,7 @@ def security_audit(event_type, account_id=None, identifier='', client_ip='', det
 def list_security_audit(limit=250):
     ensure_schema(); c=_public()
     try:
-        rows=c.execute('SELECT * FROM saas_security_audit ORDER BY id DESC LIMIT ?',(max(1,min(1000,int(limit or 250))),)).fetchall(); out=[]
+        rows=c.execute('SELECT * FROM saas_security_audit ORDER BY id DESC LIMIT ?',(max(1,min(1000,int(limit or 250))),)).fetchall();out=[]
         for r in rows:
             d=dict(r)
             try:d['details']=json.loads(d.pop('details_json') or '{}')
@@ -129,52 +126,48 @@ def list_security_audit(limit=250):
         return out
     finally:c.close()
 
-def auth_rate_check(scope, identifier, client_ip, max_failures=5, window_minutes=15, block_minutes=15):
-    ensure_schema(); scope=str(scope or '').upper()[:40]; ident=str(identifier or '').strip().lower()[:180] or '-'; ip=str(client_ip or '')[:80] or '-'; now=_now(); c=_public()
+def auth_rate_check(scope,identifier,client_ip,max_failures=5,window_minutes=15,block_minutes=15):
+    ensure_schema();scope=str(scope or '').upper()[:40];ident=str(identifier or '').strip().lower()[:180] or '-';ip=str(client_ip or '')[:80] or '-';now=_now();c=_public()
     try:
         r=c.execute('SELECT * FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip)).fetchone()
         if not r:return True
         blocked=_parse(r['blocked_until'])
         if blocked and blocked>now:
-            wait=max(1,int(((blocked-now).total_seconds()+59)//60)); raise ValueError(f'Terlalu banyak percobaan login. Coba lagi sekitar {wait} menit.')
+            wait=max(1,int(((blocked-now).total_seconds()+59)//60));raise ValueError(f'Terlalu banyak percobaan login. Coba lagi sekitar {wait} menit.')
         started=_parse(r['window_started_at'])
-        if not started or (now-started)>timedelta(minutes=max(1,int(window_minutes))):
-            c.execute('DELETE FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip));c.commit()
+        if not started or (now-started)>timedelta(minutes=max(1,int(window_minutes))):c.execute('DELETE FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip));c.commit()
         return True
     finally:c.close()
 
-def auth_rate_failure(scope, identifier, client_ip, max_failures=5, window_minutes=15, block_minutes=15, account_id=None):
-    ensure_schema(); scope=str(scope or '').upper()[:40]; ident=str(identifier or '').strip().lower()[:180] or '-'; ip=str(client_ip or '')[:80] or '-'; now=_now(); c=_public()
+def auth_rate_failure(scope,identifier,client_ip,max_failures=5,window_minutes=15,block_minutes=15,account_id=None):
+    ensure_schema();scope=str(scope or '').upper()[:40];ident=str(identifier or '').strip().lower()[:180] or '-';ip=str(client_ip or '')[:80] or '-';now=_now();c=_public()
     try:
-        r=c.execute('SELECT * FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip)).fetchone(); started=_parse(r['window_started_at']) if r else None
-        if not r or not started or (now-started)>timedelta(minutes=max(1,int(window_minutes))): count=1; started=now
-        else: count=int(r['fail_count'] or 0)+1
+        r=c.execute('SELECT * FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip)).fetchone();started=_parse(r['window_started_at']) if r else None
+        if not r or not started or (now-started)>timedelta(minutes=max(1,int(window_minutes))):count=1;started=now
+        else:count=int(r['fail_count'] or 0)+1
         blocked=(now+timedelta(minutes=max(1,int(block_minutes)))) if count>=max(1,int(max_failures)) else None
-        c.execute("INSERT INTO saas_security_attempts(scope,identifier,client_ip,fail_count,window_started_at,blocked_until,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(scope,identifier,client_ip) DO UPDATE SET fail_count=excluded.fail_count,window_started_at=excluded.window_started_at,blocked_until=excluded.blocked_until,updated_at=excluded.updated_at",
-          (scope,ident,ip,count,_iso(started),_iso(blocked) if blocked else None,_iso(now)));c.commit()
+        c.execute("INSERT INTO saas_security_attempts(scope,identifier,client_ip,fail_count,window_started_at,blocked_until,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(scope,identifier,client_ip) DO UPDATE SET fail_count=excluded.fail_count,window_started_at=excluded.window_started_at,blocked_until=excluded.blocked_until,updated_at=excluded.updated_at",(scope,ident,ip,count,_iso(started),_iso(blocked) if blocked else None,_iso(now)));c.commit()
     finally:c.close()
     security_audit(scope+'_FAILED',account_id,ident,ip,{'fail_count':count,'blocked':bool(blocked)});return count
 
-def auth_rate_success(scope, identifier, client_ip, account_id=None):
-    scope=str(scope or '').upper()[:40]; ident=str(identifier or '').strip().lower()[:180] or '-'; ip=str(client_ip or '')[:80] or '-'; c=_public()
+def auth_rate_success(scope,identifier,client_ip,account_id=None):
+    scope=str(scope or '').upper()[:40];ident=str(identifier or '').strip().lower()[:180] or '-';ip=str(client_ip or '')[:80] or '-';c=_public()
     try:c.execute('DELETE FROM saas_security_attempts WHERE scope=? AND identifier=? AND client_ip=?',(scope,ident,ip));c.commit()
     finally:c.close()
     security_audit(scope+'_SUCCESS',account_id,ident,ip,{})
 
-def consume_rate_limit(scope, rate_key, client_ip, max_hits=5, window_minutes=60):
-    ensure_schema(); scope=str(scope or '').upper()[:40]; key=str(rate_key or '').strip().lower()[:180] or '-'; ip=str(client_ip or '')[:80] or '-'; now=_now(); c=_public()
+def consume_rate_limit(scope,rate_key,client_ip,max_hits=5,window_minutes=60):
+    ensure_schema();scope=str(scope or '').upper()[:40];key=str(rate_key or '').strip().lower()[:180] or '-';ip=str(client_ip or '')[:80] or '-';now=_now();c=_public()
     try:
-        r=c.execute('SELECT * FROM saas_rate_limits WHERE scope=? AND rate_key=? AND client_ip=?',(scope,key,ip)).fetchone(); started=_parse(r['window_started_at']) if r else None
-        if not r or not started or (now-started)>timedelta(minutes=max(1,int(window_minutes))): count=1; started=now
-        else: count=int(r['hit_count'] or 0)+1
+        r=c.execute('SELECT * FROM saas_rate_limits WHERE scope=? AND rate_key=? AND client_ip=?',(scope,key,ip)).fetchone();started=_parse(r['window_started_at']) if r else None
+        if not r or not started or (now-started)>timedelta(minutes=max(1,int(window_minutes))):count=1;started=now
+        else:count=int(r['hit_count'] or 0)+1
         if count>max(1,int(max_hits)):
             wait=max(1,int(((timedelta(minutes=max(1,int(window_minutes)))-(now-started)).total_seconds()+59)//60));raise ValueError(f'Terlalu banyak permintaan. Coba lagi sekitar {wait} menit.')
-        c.execute("INSERT INTO saas_rate_limits(scope,rate_key,client_ip,hit_count,window_started_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(scope,rate_key,client_ip) DO UPDATE SET hit_count=excluded.hit_count,window_started_at=excluded.window_started_at,updated_at=excluded.updated_at",
-          (scope,key,ip,count,_iso(started),_iso(now)));c.commit();return count
+        c.execute("INSERT INTO saas_rate_limits(scope,rate_key,client_ip,hit_count,window_started_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(scope,rate_key,client_ip) DO UPDATE SET hit_count=excluded.hit_count,window_started_at=excluded.window_started_at,updated_at=excluded.updated_at",(scope,key,ip,count,_iso(started),_iso(now)));c.commit();return count
     finally:c.close()
 
-def security_status():
-    return {'owner_2fa_configured':hardening.owner_totp_configured(),'login_lockout':'5 kegagalan / 15 menit','signup_rate_limit':'5 akun / IP / 60 menit','owner_session_hours':4,'tenant_isolation':'PostgreSQL schema + session binding','token_storage':'sessionStorage','security_headers':True}
+def security_status():return {'owner_2fa_configured':hardening.owner_totp_configured(),'login_lockout':'5 kegagalan / 15 menit','signup_rate_limit':'5 akun / IP / 60 menit','owner_session_hours':4,'tenant_isolation':'PostgreSQL schema + session binding','token_storage':'sessionStorage','security_headers':True}
 
 def _account_dict(r):
     if not r:return None
@@ -461,11 +454,6 @@ def account_by_schema(schema_name):
 
 
 def reset_primary_admin_password(account_id, client_ip=''):
-    """Owner-level recovery for the highest tenant administrator.
-
-    Returns a one-time temporary password and forces the tenant admin to replace it
-    after login. Existing tenant sessions are revoked.
-    """
     from .database import tenant_scope, write_transaction, ensure_password_security_schema
     a=account_by_id(account_id)
     if not a: raise ValueError('Akun tidak ditemukan.')
@@ -475,14 +463,12 @@ def reset_primary_admin_password(account_id, client_ip=''):
         ensure_password_security_schema()
         with write_transaction() as tx:
             user=tx.execute("SELECT u.id,u.username FROM users u JOIN roles r ON r.id=u.role_id WHERE lower(u.username)=lower(?) AND r.code='ADMIN' ORDER BY u.id LIMIT 1",(a['email'],)).fetchone()
-            if not user:
-                user=tx.execute("SELECT u.id,u.username FROM users u JOIN roles r ON r.id=u.role_id WHERE r.code='ADMIN' AND u.is_active=1 ORDER BY u.id LIMIT 1").fetchone()
+            if not user:user=tx.execute("SELECT u.id,u.username FROM users u JOIN roles r ON r.id=u.role_id WHERE r.code='ADMIN' AND u.is_active=1 ORDER BY u.id LIMIT 1").fetchone()
             if not user: raise ValueError('Administrator utama akun tidak ditemukan.')
             tx.execute("UPDATE users SET password_hash=?,must_change_password=1,updated_at=? WHERE id=?",(hash_password(temporary),_iso(),user['id']))
             tx.execute("DELETE FROM sessions WHERE user_id=?",(user['id'],))
     c=_public()
-    try:
-        c.execute('DELETE FROM saas_sessions WHERE account_id=?',(int(account_id),));c.commit()
+    try:c.execute('DELETE FROM saas_sessions WHERE account_id=?',(int(account_id),));c.commit()
     finally:c.close()
     security_audit('OWNER_ADMIN_PASSWORD_RESET',int(account_id),a.get('email') or '',client_ip,{'username':user['username']})
     return {'username':user['username'],'temporary_password':temporary,'must_change_password':True}

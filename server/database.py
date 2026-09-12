@@ -1236,17 +1236,10 @@ def init_tenant(schema_name, admin_email, admin_name, admin_password, company_na
 
 
 def ensure_password_security_schema():
-    """Apply password-recovery columns to the currently selected tenant schema.
-
-    Existing SaaS tenants were created before v1.4.2, so this lightweight migration
-    is also called when their session is activated.
-    """
     c=connect()
     try:
-        if IS_POSTGRES:
-            c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password INTEGER NOT NULL DEFAULT 0")
-        else:
-            _ensure_column(c,"users","must_change_password","must_change_password INTEGER NOT NULL DEFAULT 0")
+        if IS_POSTGRES:c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password INTEGER NOT NULL DEFAULT 0")
+        else:_ensure_column(c,"users","must_change_password","must_change_password INTEGER NOT NULL DEFAULT 0")
         c.commit()
     finally:c.close()
     return True
