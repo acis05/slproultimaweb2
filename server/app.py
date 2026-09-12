@@ -448,6 +448,9 @@ class H(BaseHTTPRequestHandler):
             elif path.startswith("/api/owner/accounts/") and path.endswith("/status"):
                 if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
                 aid=int(path.split("/")[4]);self.js(200,{"status":"updated","item":self.safe(saas.set_account_status,aid,d.get("status"))})
+            elif path.startswith("/api/owner/accounts/") and path.endswith("/reset-admin-password"):
+                if not saas.owner_authenticated(self.token()): raise E(401,"Sesi Owner Admin tidak valid.")
+                aid=int(path.split("/")[4]);result=self.safe(saas.reset_primary_admin_password,aid,self.client_ip());self.js(200,{"status":"password_reset","result":result})
             elif path=="/api/owner-cloud/register":
                 self.me("settings.manage");self.js(200,self.safe(owner_cloud.register))
             elif path=="/api/owner-cloud/pairing-code":
@@ -469,6 +472,8 @@ class H(BaseHTTPRequestHandler):
                 self.me("users.manage")
                 if not repo.force_logout_session(str(d.get("session_id","") or "")):raise E(404,"Sesi tidak ditemukan.")
                 self.js(200,{"status":"logged_out"})
+            elif path=="/api/me/change-password":
+                actor=self.me();self.safe(repo.change_own_password,actor,d.get("current_password"),d.get("new_password"),self.client_ip());self.js(200,{"status":"password_changed"})
             elif path=="/api/logout":
                 repo.logout(self.token());self.js(200,{"status":"logged_out"})
             elif path=="/api/subscription-admin/activate":

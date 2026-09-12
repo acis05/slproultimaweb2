@@ -1,12 +1,12 @@
-# Deploy StokLedger Online v1.4.0 Production Security Edition
+# Deploy StokLedger Online v1.4.2 Production Security Edition
 
 ## 1. Update GitHub dari VS Code
 
-Replace source lama dengan isi source v1.4.0. Jangan hapus folder `.git`.
+Replace source lama dengan isi source v1.4.2. Jangan hapus folder `.git`.
 
 ```bash
 git add .
-git commit -m "Upgrade StokLedger Online v1.4.0 production security"
+git commit -m "Upgrade StokLedger Online v1.4.2 production security"
 git push
 ```
 

@@ -459,6 +459,34 @@ def account_by_schema(schema_name):
     try:return _account_dict(c.execute('SELECT * FROM saas_accounts WHERE schema_name=?',(str(schema_name),)).fetchone())
     finally:c.close()
 
+
+def reset_primary_admin_password(account_id, client_ip=''):
+    """Owner-level recovery for the highest tenant administrator.
+
+    Returns a one-time temporary password and forces the tenant admin to replace it
+    after login. Existing tenant sessions are revoked.
+    """
+    from .database import tenant_scope, write_transaction, ensure_password_security_schema
+    a=account_by_id(account_id)
+    if not a: raise ValueError('Akun tidak ditemukan.')
+    alphabet='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%'
+    temporary=''.join(secrets.choice(alphabet) for _ in range(14))
+    with tenant_scope(a['schema_name']):
+        ensure_password_security_schema()
+        with write_transaction() as tx:
+            user=tx.execute("SELECT u.id,u.username FROM users u JOIN roles r ON r.id=u.role_id WHERE lower(u.username)=lower(?) AND r.code='ADMIN' ORDER BY u.id LIMIT 1",(a['email'],)).fetchone()
+            if not user:
+                user=tx.execute("SELECT u.id,u.username FROM users u JOIN roles r ON r.id=u.role_id WHERE r.code='ADMIN' AND u.is_active=1 ORDER BY u.id LIMIT 1").fetchone()
+            if not user: raise ValueError('Administrator utama akun tidak ditemukan.')
+            tx.execute("UPDATE users SET password_hash=?,must_change_password=1,updated_at=? WHERE id=?",(hash_password(temporary),_iso(),user['id']))
+            tx.execute("DELETE FROM sessions WHERE user_id=?",(user['id'],))
+    c=_public()
+    try:
+        c.execute('DELETE FROM saas_sessions WHERE account_id=?',(int(account_id),));c.commit()
+    finally:c.close()
+    security_audit('OWNER_ADMIN_PASSWORD_RESET',int(account_id),a.get('email') or '',client_ip,{'username':user['username']})
+    return {'username':user['username'],'temporary_password':temporary,'must_change_password':True}
+
 def sync_account_subscription(schema_name, st):
     a=account_by_schema(schema_name)
     if not a:return None

@@ -18,3 +18,9 @@ Selesaikan checklist ini sebelum menerima pelanggan berbayar.
 - [ ] Uji role user biasa tidak dapat membuka endpoint admin/accounting tanpa permission.
 - [ ] Uji transaksi inti dan laporan setelah upgrade.
 - [ ] Cloudflare/WAF/rate protection eksternal aktif bila digunakan.
+
+## Password recovery
+- User biasa: reset oleh Administrator perusahaan.
+- Administrator utama tenant: reset oleh Owner Admin setelah verifikasi pelanggan.
+- Password sementara wajib diganti pada login berikutnya.
+- Jangan pernah mereset password hanya berdasarkan permintaan email/WhatsApp tanpa verifikasi identitas pelanggan.

@@ -4,7 +4,7 @@ import json
 from datetime import date, timedelta, datetime, timezone
 import csv,io,html,base64,mimetypes
 from pathlib import Path
-from .database import connect, write_transaction, set_tenant_schema, current_tenant_schema
+from .database import connect, write_transaction, set_tenant_schema, current_tenant_schema, ensure_password_security_schema
 from .services import inventory_service
 from .services import bank_pdf_parser, purchase_service, accounting_service, cash_service, returns_service
 from .security import hash_password, verify_password, new_token, utc_now, expires_at, is_expired
@@ -12,7 +12,7 @@ from .config import TOKEN_HOURS, DATA_DIR, IS_POSTGRES
 from . import licensing, multi_unit, subscription, saas
 def user_dict(r):
     return {"id":r["id"],"username":r["username"],"full_name":r["full_name"],
-    "is_active":bool(r["is_active"]),"role":{"id":r["role_id"],"code":r["role_code"],
+    "is_active":bool(r["is_active"]),"must_change_password":bool(r.get("must_change_password",0) if hasattr(r,"get") else r["must_change_password"]),"role":{"id":r["role_id"],"code":r["role_code"],
     "name":r["role_name"],"permissions":json.loads(r["permissions_json"] or "[]")},
     "created_at":r["created_at"],"updated_at":r["updated_at"]}
 def audit(uid,action,etype=None,eid=None,details=None,ip=None,conn=None):
@@ -43,6 +43,7 @@ def login(username,password,ip,client_name="browser",device_id=None,user_agent=N
     if account:
         if account.get('status')=='SUSPENDED': raise ValueError('Akun dinonaktifkan oleh Administrator StokLedger.')
         set_tenant_schema(account['schema_name'])
+        ensure_password_security_schema()
         username=tenant_username or account['email']
     else:
         set_tenant_schema(None)
@@ -81,7 +82,7 @@ def _activate_session_tenant(token):
     if IS_POSTGRES:
         info=saas.session_info(token)
         if info:
-            set_tenant_schema(info['schema_name']); return info
+            set_tenant_schema(info['schema_name']); ensure_password_security_schema(); return info
         set_tenant_schema(None)
     return None
 
@@ -2112,11 +2113,26 @@ def reset_user_password(actor,user_id,new_password,ip):
     with write_transaction() as tx:
         user=tx.execute("SELECT username FROM users WHERE id=?",(user_id,)).fetchone()
         if not user: raise ValueError("User tidak ditemukan.")
-        tx.execute("UPDATE users SET password_hash=?,updated_at=? WHERE id=?",
+        tx.execute("UPDATE users SET password_hash=?,must_change_password=1,updated_at=? WHERE id=?",
           (hash_password(new_password),utc_now(),user_id))
         tx.execute("DELETE FROM sessions WHERE user_id=?",(user_id,))
         audit(actor["id"],"USER_PASSWORD_RESET","user",user_id,
           {"username":user["username"]},ip,tx)
+    return True
+
+
+def change_own_password(actor,current_password,new_password,ip):
+    current_password=str(current_password or "")
+    new_password=str(new_password or "")
+    if len(new_password)<8: raise ValueError("Password baru minimal 8 karakter.")
+    if current_password==new_password: raise ValueError("Password baru harus berbeda dari password lama.")
+    with write_transaction() as tx:
+        user=tx.execute("SELECT id,username,password_hash FROM users WHERE id=?",(int(actor["id"]),)).fetchone()
+        if not user or not verify_password(current_password,user["password_hash"]):
+            raise ValueError("Password saat ini tidak sesuai.")
+        tx.execute("UPDATE users SET password_hash=?,must_change_password=0,updated_at=? WHERE id=?",
+          (hash_password(new_password),utc_now(),int(actor["id"])))
+        audit(actor["id"],"USER_PASSWORD_CHANGED","user",actor["id"],{"username":user["username"]},ip,tx)
     return True
 
 

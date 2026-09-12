@@ -190,13 +190,26 @@ input,select,textarea{border-color:#cbdbe1;background:#fff;transition:border-col
   #app:not(.hidden){display:block!important}.workspace-tabs-shell{position:sticky;top:99px;z-index:79;padding:7px 8px;background:rgba(244,248,250,.97);border-bottom:1px solid #d5e2e7}.workspace-tabs{gap:6px}.workspace-tab{height:36px;min-width:96px;max-width:190px;padding-left:11px;font-size:11px;border-radius:10px}.page{padding-top:10px!important}
 }
 
+
+/* v1.4.1 role-aware UI */
+.permission-hidden{display:none!important}
+.permission-empty{grid-column:1/-1;padding:24px;border:1px dashed #c7dbe1;border-radius:14px;background:#f7fbfc;color:#5d7480;display:flex;flex-direction:column;gap:6px;text-align:center}
+.permission-empty b{color:#244b5a}
+.server-user #health[data-role-access]:after{content:' · ' attr(data-role-access);color:#cde6ee}
+
+
+/* v1.4.2 account password self-service */
+.account-password-btn{width:100%;margin:8px 0 0;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);color:#fff;min-height:38px;border-radius:10px}.account-password-btn:hover{background:rgba(255,255,255,.16)}
+.password-dialog{border:0;border-radius:20px;padding:0;width:min(480px,calc(100vw - 28px));box-shadow:0 25px 80px rgba(9,30,45,.32)}.password-dialog::backdrop{background:rgba(7,24,37,.58);backdrop-filter:blur(3px)}.password-dialog-card{padding:22px}.password-dialog-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.password-dialog-head h3{margin:0}.password-dialog-close{width:36px;height:36px;border-radius:50%;padding:0}.password-dialog .field{margin-bottom:10px}.password-dialog-note{padding:10px 12px;border-radius:12px;background:#eef8f8;border:1px solid #d1e8ea;color:#45656e;font-size:12px;line-height:1.45}.password-dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.forgot-password-note{font-size:12px;color:#667d88;line-height:1.45;margin-top:10px}
+@media(max-width:760px){.account-password-btn{display:none}.password-dialog-actions{display:grid;grid-template-columns:1fr}.password-dialog-actions button{width:100%;min-height:44px}}
+
 </style></head><body><div class="wrap">
 <div class="card"><h1>StokLedger Online</h1><div class="muted">Kelola bisnis dari mana saja</div></div>
-<section id="authShell" class="auth-shell"><div class="auth-hero"><div class="auth-brand"><img src="/assets/stokledger-icon.png" alt="StokLedger"><div><h1>StokLedger Online</h1><p>Kelola stok, penjualan, keuangan, dan proyek dari mana saja.</p></div></div><div class="auth-copy"><span class="trial-pill">✓ Trial gratis 7 hari · 2 user</span><h2>Operasional lebih rapi.<br><span>Keputusan lebih cepat.</span></h2><p>Versi web yang dirancang untuk kerja kolaboratif: akses aman dari laptop maupun ponsel, data tersimpan aman secara online, dan semua modul bisnis tetap terintegrasi.</p><div class="auth-features"><div class="auth-feature"><b>📦 Stok & Gudang</b><small>Multi gudang, valuasi, assembly, dan adjustment.</small></div><div class="auth-feature"><b>💳 Keuangan</b><small>Kas, piutang, hutang, jurnal, dan laporan terhubung.</small></div><div class="auth-feature"><b>📱 Mobile Friendly</b><small>Input transaksi dan pantau dashboard dari HP.</small></div></div></div></div><div class="auth-panel"><div id="login" class="card auth-card"><div class="auth-brand" style="display:none"><img src="/assets/stokledger-icon.png"><div><h1>StokLedger Online</h1></div></div><h2 style="margin:0">Selamat datang</h2><p class="muted" style="margin-top:6px">Login atau buat akun baru untuk memulai trial 7 hari.</p><div class="auth-tabs"><button id="authLoginTab" class="active" onclick="showAuthPane('login')">Masuk</button><button id="authSignupTab" onclick="showAuthPane('signup')">Buat Akun Trial</button></div><div id="authLoginPane" class="auth-pane active"><label class="auth-field"><span>Email / Username</span><input id="username" placeholder="Email pemilik atau username user" autocomplete="username"></label><label class="auth-field"><span>Password</span><input id="password" type="password" placeholder="Password" autocomplete="current-password"></label><button class="auth-action" onclick="doLogin()">Masuk ke StokLedger Online</button><p id="loginMsg"></p></div><div id="authSignupPane" class="auth-pane"><div class="auth-grid"><label class="auth-field"><span>Nama Perusahaan</span><input id="signupCompany" placeholder="PT / CV / Usaha"></label><label class="auth-field"><span>Nama Admin</span><input id="signupName" placeholder="Nama lengkap"></label></div><label class="auth-field"><span>Email Login</span><input id="signupEmail" type="email" placeholder="admin@perusahaan.com"></label><div class="auth-grid"><label class="auth-field"><span>No. HP / WhatsApp</span><input id="signupPhone" placeholder="08..."></label><label class="auth-field"><span>Password</span><input id="signupPassword" type="password" minlength="8" placeholder="Minimal 8 karakter"></label></div><button class="auth-action" onclick="createTrialAccount()">Mulai Trial Gratis 7 Hari</button><p id="signupMsg"></p><div class="auth-note">Dengan membuat akun, Anda mendapat trial 7 hari untuk maksimal 2 user. Setelah trial berakhir, data tetap tersimpan dan dapat dilanjutkan setelah aktivasi langganan.</div></div></div></div></section>
+<section id="authShell" class="auth-shell"><div class="auth-hero"><div class="auth-brand"><img src="/assets/stokledger-icon.png" alt="StokLedger"><div><h1>StokLedger Online</h1><p>Kelola stok, penjualan, keuangan, dan proyek dari mana saja.</p></div></div><div class="auth-copy"><span class="trial-pill">✓ Trial gratis 7 hari · 2 user</span><h2>Operasional lebih rapi.<br><span>Keputusan lebih cepat.</span></h2><p>Versi web yang dirancang untuk kerja kolaboratif: akses aman dari laptop maupun ponsel, data tersimpan aman secara online, dan semua modul bisnis tetap terintegrasi.</p><div class="auth-features"><div class="auth-feature"><b>📦 Stok & Gudang</b><small>Multi gudang, valuasi, assembly, dan adjustment.</small></div><div class="auth-feature"><b>💳 Keuangan</b><small>Kas, piutang, hutang, jurnal, dan laporan terhubung.</small></div><div class="auth-feature"><b>📱 Mobile Friendly</b><small>Input transaksi dan pantau dashboard dari HP.</small></div></div></div></div><div class="auth-panel"><div id="login" class="card auth-card"><div class="auth-brand" style="display:none"><img src="/assets/stokledger-icon.png"><div><h1>StokLedger Online</h1></div></div><h2 style="margin:0">Selamat datang</h2><p class="muted" style="margin-top:6px">Login atau buat akun baru untuk memulai trial 7 hari.</p><div class="auth-tabs"><button id="authLoginTab" class="active" onclick="showAuthPane('login')">Masuk</button><button id="authSignupTab" onclick="showAuthPane('signup')">Buat Akun Trial</button></div><div id="authLoginPane" class="auth-pane active"><label class="auth-field"><span>Email / Username</span><input id="username" placeholder="Email pemilik atau username user" autocomplete="username"></label><label class="auth-field"><span>Password</span><input id="password" type="password" placeholder="Password" autocomplete="current-password"></label><button class="auth-action" onclick="doLogin()">Masuk ke StokLedger Online</button><p id="loginMsg"></p><div class="forgot-password-note">Lupa password? User biasa dapat meminta Administrator perusahaan untuk reset. Jika Administrator utama lupa password, hubungi layanan StokLedger Online.</div></div><div id="authSignupPane" class="auth-pane"><div class="auth-grid"><label class="auth-field"><span>Nama Perusahaan</span><input id="signupCompany" placeholder="PT / CV / Usaha"></label><label class="auth-field"><span>Nama Admin</span><input id="signupName" placeholder="Nama lengkap"></label></div><label class="auth-field"><span>Email Login</span><input id="signupEmail" type="email" placeholder="admin@perusahaan.com"></label><div class="auth-grid"><label class="auth-field"><span>No. HP / WhatsApp</span><input id="signupPhone" placeholder="08..."></label><label class="auth-field"><span>Password</span><input id="signupPassword" type="password" minlength="8" placeholder="Minimal 8 karakter"></label></div><button class="auth-action" onclick="createTrialAccount()">Mulai Trial Gratis 7 Hari</button><p id="signupMsg"></p><div class="auth-note">Dengan membuat akun, Anda mendapat trial 7 hari untuk maksimal 2 user. Setelah trial berakhir, data tetap tersimpan dan dapat dilanjutkan setelah aktivasi langganan.</div></div></div></div></section>
 <div id="app" class="hidden">
 <aside class="sidebar card">
   <div class="brand-block brand-logo-block"><img class="sidebar-logo" src="/assets/stokledger-logo.png" alt="StokLedger Online"><div class="brand-copy"><strong>StokLedger Online</strong><small>Kelola Stok, Penjualan & Keuangan</small></div></div>
-  <div class="server-user"><b id="who"></b><div id="health" class="muted"></div></div><div id="webSubscriptionChip" class="web-status-chip">Memuat status langganan...</div>
+  <div class="server-user"><b id="who"></b><div id="health" class="muted"></div></div><div id="webSubscriptionChip" class="web-status-chip">Memuat status langganan...</div><button type="button" class="account-password-btn" onclick="openPasswordDialog(false)">🔑 Ubah Password</button>
   <nav class="nav module-nav">
     <button onclick="page('dashboard',this)" class="active"><span class="nav-icon">⌂</span>Dashboard</button>
     <button onclick="showModule('master',this)"><span class="nav-icon">▦</span>Master Data</button>
@@ -217,8 +230,9 @@ input,select,textarea{border-color:#cbdbe1;background:#fff;transition:border-col
 <section id="mobileDrawer" class="mobile-drawer hidden" aria-hidden="true">
   <div class="mobile-drawer-header"><strong>Menu Cepat</strong><button type="button" class="mobile-drawer-close" onclick="closeMobileDrawer()">×</button></div>
   <div id="mobileDrawerGrid" class="mobile-drawer-grid"></div>
-  <button type="button" class="secondary mobile-drawer-logout" onclick="logout()">Keluar / Logout</button>
+  <button type="button" class="secondary mobile-drawer-logout" onclick="closeMobileDrawer();openPasswordDialog(false)">🔑 Ubah Password Saya</button><button type="button" class="secondary mobile-drawer-logout" onclick="logout()">Keluar / Logout</button>
 </section>
+<dialog id="changePasswordDialog" class="password-dialog"><div class="password-dialog-card"><div class="password-dialog-head"><div><h3>Ubah Password</h3><p id="passwordDialogSubtitle" class="muted" style="margin:5px 0 0">Ganti password akun yang sedang digunakan.</p></div><button id="passwordDialogClose" type="button" class="secondary password-dialog-close" onclick="changePasswordDialog.close()">×</button></div><div id="passwordForceNote" class="password-dialog-note hidden">Password Anda direset oleh Administrator. Demi keamanan, buat password baru sebelum melanjutkan penggunaan aplikasi.</div><label class="field"><span>Password Saat Ini</span><input id="myCurrentPassword" type="password" autocomplete="current-password"></label><label class="field"><span>Password Baru</span><input id="myNewPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimal 8 karakter"></label><label class="field"><span>Ulangi Password Baru</span><input id="myConfirmPassword" type="password" minlength="8" autocomplete="new-password"></label><div class="password-dialog-actions"><button id="passwordCancelBtn" type="button" class="secondary" onclick="changePasswordDialog.close()">Batal</button><button type="button" onclick="saveMyPassword()">Simpan Password Baru</button></div><p id="passwordChangeMsg"></p></div></dialog>
 <nav id="mobileTabbar" class="mobile-tabbar hidden" aria-label="Navigasi mobile">
   <button type="button" data-mobile-tab="dashboard" onclick="openMobileDashboard(this)"><span class="nav-icon">⌂</span><span>Home</span></button>
   <button type="button" data-mobile-tab="sales" onclick="openMobileModule('sales',this)"><span class="nav-icon">⇧</span><span>Jual</span></button>
@@ -717,7 +731,85 @@ function installTypeToSearchSelects(){
   window.addEventListener('resize',()=>{if(active)positionBox()});
   window.addEventListener('scroll',()=>{if(active)positionBox()},true);
 }
-function showAuthPane(kind){let loginMode=kind!=='signup';authLoginPane.classList.toggle('active',loginMode);authSignupPane.classList.toggle('active',!loginMode);authLoginTab.classList.toggle('active',loginMode);authSignupTab.classList.toggle('active',!loginMode)}async function createTrialAccount(){try{signupMsg.textContent='Menyiapkan akun trial Anda...';signupMsg.className='muted';let d=await api('/api/signup',{method:'POST',body:JSON.stringify({company_name:signupCompany.value,owner_name:signupName.value,email:signupEmail.value,phone:signupPhone.value,password:signupPassword.value})});msg(signupMsg,'Akun berhasil dibuat. Trial 7 hari aktif sampai '+new Date(d.account.trial_expires_at).toLocaleDateString('id-ID')+'. Silakan login.',true);username.value=signupEmail.value;password.value=signupPassword.value;setTimeout(()=>showAuthPane('login'),500)}catch(e){msg(signupMsg,e.message,false)}}async function doLogin(){try{let d=await api('/api/login',{method:'POST',body:JSON.stringify({username:username.value,password:password.value,client_name:navigator.userAgent.includes('Mobile')?'mobile-browser':'desktop-browser',device_id:ensureDeviceId()})});token=d.token;sessionStorage.setItem('slp_token',token);window.__currentAccount=d.account||null;openApp(d.user)}catch(e){msg(loginMsg,e.message,false)}}function hasPermission(code){const p=currentUser&&currentUser.role&&Array.isArray(currentUser.role.permissions)?currentUser.role.permissions:[];return p.includes('*')||p.includes(code)}async function openApp(u){installTypeToSearchSelects();renderMobileDrawerMenu();currentUser=u;const perms=(u&&u.role&&Array.isArray(u.role.permissions))?u.role.permissions:[];document.body.classList.toggle('hide-cost',!(perms.includes('*')||perms.includes('cost.view')));authShell.classList.add('hidden');authShell.setAttribute('aria-hidden','true');app.classList.remove('hidden');app.setAttribute('aria-hidden','false');resetWorkspaceTabs();window.scrollTo(0,0);who.textContent=u.username+' · '+u.role.name;startHeartbeat();await refreshAll();await refreshSubscriptionChip()}function openPartnerPage(type,b){partnerFilter.value=type;page('partners',b);loadPartners()}function clearTransactionEditState(){window.__maintenanceEdit=null;window.__documentEdit=null;window.__salesReturnEdit=null;window.__purchaseReturnEdit=null}
+function showAuthPane(kind){let loginMode=kind!=='signup';authLoginPane.classList.toggle('active',loginMode);authSignupPane.classList.toggle('active',!loginMode);authLoginTab.classList.toggle('active',loginMode);authSignupTab.classList.toggle('active',!loginMode)}async function createTrialAccount(){try{signupMsg.textContent='Menyiapkan akun trial Anda...';signupMsg.className='muted';let d=await api('/api/signup',{method:'POST',body:JSON.stringify({company_name:signupCompany.value,owner_name:signupName.value,email:signupEmail.value,phone:signupPhone.value,password:signupPassword.value})});msg(signupMsg,'Akun berhasil dibuat. Trial 7 hari aktif sampai '+new Date(d.account.trial_expires_at).toLocaleDateString('id-ID')+'. Silakan login.',true);username.value=signupEmail.value;password.value=signupPassword.value;setTimeout(()=>showAuthPane('login'),500)}catch(e){msg(signupMsg,e.message,false)}}async function doLogin(){try{let d=await api('/api/login',{method:'POST',body:JSON.stringify({username:username.value,password:password.value,client_name:navigator.userAgent.includes('Mobile')?'mobile-browser':'desktop-browser',device_id:ensureDeviceId()})});token=d.token;sessionStorage.setItem('slp_token',token);window.__currentAccount=d.account||null;openApp(d.user)}catch(e){msg(loginMsg,e.message,false)}}function hasPermission(code){const p=currentUser&&currentUser.role&&Array.isArray(currentUser.role.permissions)?currentUser.role.permissions:[];return p.includes('*')||p.includes(code)}
+function hasAnyPermission(codes=[]){const p=currentUser&&currentUser.role&&Array.isArray(currentUser.role.permissions)?currentUser.role.permissions:[];return p.includes('*')||codes.some(code=>p.includes(code))}
+const modulePermissionMap={
+ dashboard:['dashboard.view'],
+ master:['inventory.view','inventory.manage','services.view','services.manage','departments.view','departments.manage','partners.view','partners.manage'],
+ sales:['sales.view','sales.manage','receivables.view','receivables.manage'],
+ purchases:['purchases.view','purchases.manage','payables.view','payables.manage'],
+ cash:['cash.view','cash.manage'],
+ inventory:['inventory.view','inventory.manage'],
+ assembly:['inventory.manage'],
+ fixedassets:['accounting.view','accounting.manage'],
+ project:['projects.view','projects.manage'],
+ accounting:['accounting.view','accounting.manage'],
+ reports:['reports.view'],
+ system:['settings.view','settings.manage','users.manage','audit.view']
+};
+const moduleItemPermissionMap={
+ master:{
+  'Tingkatan Harga':['inventory.view','inventory.manage'],'Impor Data Excel':['inventory.manage','partners.manage','services.manage'],
+  'Master Departemen':['departments.view','departments.manage'],'Data Barang':['inventory.view','inventory.manage'],
+  'Daftar Jasa':['services.view','services.manage'],'Data Pelanggan':['partners.view','partners.manage'],
+  'Data Pemasok':['partners.view','partners.manage'],'Data Merk':['inventory.view','inventory.manage'],
+  'Data Salesman':['partners.view','partners.manage'],'Daftar Nama Gudang':['inventory.view','inventory.manage'],
+  'Kategori & Satuan':['inventory.view','inventory.manage']
+ },
+ sales:{
+  'Pesanan & DP Penjualan':['sales.manage'],'Input Penjualan Baru':['sales.manage'],'Daftar Penjualan':['sales.view','sales.manage'],
+  'Retur Penjualan':['sales.manage'],'Penerimaan Piutang Pelanggan':['receivables.manage'],'Daftar Penerimaan Piutang':['receivables.view','receivables.manage']
+ },
+ purchases:{
+  'Pesanan & DP Pembelian':['purchases.manage'],'Input Pembelian Baru':['purchases.manage'],'Daftar Pembelian':['purchases.view','purchases.manage'],
+  'Retur Pembelian':['purchases.manage'],'Pembayaran Hutang Pemasok':['payables.manage'],'Daftar Pembayaran Hutang':['payables.view','payables.manage']
+ },
+ cash:{
+  'Daftar Kas Masuk/Keluar':['cash.view','cash.manage'],'Daftar Transfer Kas/Bank':['cash.view','cash.manage'],
+  'Kas Masuk / Keluar':['cash.manage'],'Transfer Antar Akun':['cash.manage'],'Smart Import Rekening Koran':['cash.manage']
+ },
+ inventory:{
+  'Kartu & Saldo Stok':['inventory.view','inventory.manage'],'Daftar Adjustment Stok':['inventory.view','inventory.manage'],
+  'Daftar Transfer Gudang':['inventory.view','inventory.manage'],'Adjustment Stok':['inventory.manage'],'Transfer Gudang':['inventory.manage']
+ },
+ assembly:{'Input Assembly Baru':['inventory.manage'],'Daftar & Finishing Assembly':['inventory.manage']},
+ fixedassets:{'Aktiva Tetap Baru':['accounting.manage'],'Daftar Aktiva Tetap':['accounting.view','accounting.manage'],'Penyusutan Otomatis':['accounting.manage']},
+ project:{
+  'Daftar Proyek':['projects.view','projects.manage'],'Budget & Realisasi Proyek':['projects.view','projects.manage'],
+  'Daftar Pengeluaran Material Proyek':['projects.manage'],'Dokumen Proyek':['projects.view','projects.manage']
+ },
+ accounting:{
+  'Data COA':['accounting.view','accounting.manage'],'Daftar Jurnal Manual':['accounting.view','accounting.manage'],
+  'Jurnal Manual':['accounting.manage'],'Buku Besar':['accounting.view','accounting.manage'],'Neraca Saldo':['accounting.view','accounting.manage']
+ },
+ reports:{
+  'Laporan Proyek':['reports.view'],'Laporan Penjualan':['reports.view'],'Laporan Pembelian':['reports.view'],
+  'Laporan Stok Barang':['reports.view'],'Laporan Keuangan':['reports.view'],'Laporan Kas Bank':['reports.view']
+ },
+ system:{
+  'Trial & Langganan':['__ADMIN__'],'User & Hak Akses':['users.manage'],'Audit Log':['audit.view'],
+  'Profil Perusahaan':['settings.view','settings.manage'],'Desain Dokumen':['settings.view','settings.manage'],'Desain Invoice Fleksibel':['settings.view','settings.manage']
+ }
+};
+const pagePermissionMap={
+ dashboard:['dashboard.view'],products:['inventory.view','inventory.manage'],servicesPage:['services.view','services.manage'],customersPage:['partners.view','partners.manage'],suppliersPage:['partners.view','partners.manage'],departments:['departments.view','departments.manage'],priceLevels:['inventory.view','inventory.manage'],masterImport:['inventory.manage','partners.manage','services.manage'],
+ sales:['sales.view','sales.manage'],receivables:['receivables.view','receivables.manage'],purchases:['purchases.view','purchases.manage'],payables:['payables.view','payables.manage'],cash:['cash.view','cash.manage'],smartImport:['cash.manage'],stock:['inventory.view','inventory.manage'],assembly:['inventory.manage'],
+ fixedAssetPage:['accounting.view','accounting.manage'],fixedAssetDepPage:['accounting.manage'],projects:['projects.view','projects.manage'],projectBudgets:['projects.view','projects.manage'],projectMaterialIssues:['projects.manage'],projectDocuments:['projects.view','projects.manage'],projectReports:['reports.view'],
+ accounting:['accounting.view','accounting.manage'],reportsPage:['reports.view'],users:['users.manage'],audit:['audit.view'],settings:['settings.view','settings.manage'],docDesign:['settings.view','settings.manage'],flexInvoiceDesigner:['settings.view','settings.manage'],subscriptionAdmin:['__ADMIN__']
+};
+function canAccessModule(key){return hasAnyPermission(modulePermissionMap[key]||[])}
+function canAccessModuleItem(key,item){const title=Array.isArray(item)?item[1]:'';const needs=moduleItemPermissionMap[key]?.[title]||modulePermissionMap[key]||[];if(needs.includes('__ADMIN__'))return currentUser?.role?.code==='ADMIN';return hasAnyPermission(needs)}
+function canAccessPage(id){const needs=pagePermissionMap[id];if(!needs)return true;if(needs.includes('__ADMIN__'))return currentUser?.role?.code==='ADMIN';return hasAnyPermission(needs)}
+function firstAccessibleModule(){return Object.keys(moduleMenus||{}).find(canAccessModule)||null}
+function applyRoleFeatureVisibility(){
+ const nav=document.querySelector('.sidebar .module-nav');
+ if(nav){[...nav.querySelectorAll('button')].forEach(btn=>{const click=btn.getAttribute('onclick')||'';let allowed=true;if(click.includes("page('dashboard'"))allowed=canAccessModule('dashboard');else{const m=click.match(/showModule\('([^']+)'/);if(m)allowed=canAccessModule(m[1])}btn.classList.toggle('permission-hidden',!allowed);btn.hidden=!allowed})}
+ document.querySelectorAll('.mobile-tabbar button').forEach(btn=>{const key=btn.dataset.mobileTab;let allowed=true;if(key==='dashboard')allowed=canAccessModule('dashboard');else if(['sales','purchases','cash'].includes(key))allowed=canAccessModule(key);btn.hidden=!allowed;btn.classList.toggle('permission-hidden',!allowed)});
+ const visibleMobile=[...document.querySelectorAll('.mobile-tabbar button')].filter(x=>!x.hidden).length;if(window.mobileTabbar&&visibleMobile)mobileTabbar.style.gridTemplateColumns=`repeat(${visibleMobile},minmax(0,1fr))`;
+ renderMobileDrawerMenu();
+ const role=currentUser?.role?.name||'-',count=(currentUser?.role?.permissions||[]).includes('*')?'Semua':String((currentUser?.role?.permissions||[]).length);if(window.health)health.dataset.roleAccess=`${role} · ${count} akses`;
+}
+async function openApp(u){installTypeToSearchSelects();currentUser=u;const perms=(u&&u.role&&Array.isArray(u.role.permissions))?u.role.permissions:[];document.body.classList.toggle('hide-cost',!(perms.includes('*')||perms.includes('cost.view')));authShell.classList.add('hidden');authShell.setAttribute('aria-hidden','true');app.classList.remove('hidden');app.setAttribute('aria-hidden','false');resetWorkspaceTabs();applyRoleFeatureVisibility();window.scrollTo(0,0);who.textContent=u.username+' · '+u.role.name;startHeartbeat();await refreshAll();await refreshSubscriptionChip();if(u.must_change_password)setTimeout(()=>openPasswordDialog(true),250);if(canAccessModule('dashboard')){page('dashboard',getDesktopNavButtonByKey('dashboard')||document.querySelector('.sidebar .module-nav button:not([hidden])'),{skipRefresh:true})}else{const first=firstAccessibleModule();if(first)showModule(first,getDesktopNavButtonByKey(first));else{document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));if(window.workspaceTabsShell)workspaceTabsShell.classList.add('hidden')}}}function openPartnerPage(type,b){partnerFilter.value=type;page('partners',b);loadPartners()}function clearTransactionEditState(){window.__maintenanceEdit=null;window.__documentEdit=null;window.__salesReturnEdit=null;window.__purchaseReturnEdit=null}
 function discardTransactionDraftForPage(id){
  if(id==='sales'){
   window.__documentEdit=null;window.__sourceSalesOrderId=null;
@@ -740,11 +832,11 @@ function workspaceTitle(id){if(workspaceTabTitleMap[id])return workspaceTabTitle
 function saveWorkspaceState(id){if(!id)return;window.__workspaceScroll[id]=window.scrollY||0;const state={};workspaceEditKeys.forEach(k=>state[k]=window[k]);window.__workspaceEditState[id]=state}
 function restoreWorkspaceState(id){const state=window.__workspaceEditState[id];if(!state)return;workspaceEditKeys.forEach(k=>window[k]=state[k])}
 function ensureWorkspaceTab(id){if(!isWorkspacePage(id))return false;if(!window.__workspaceTabs.includes(id)){window.__workspaceTabs.push(id);renderWorkspaceTabs();return true}renderWorkspaceTabs();return false}
-function renderWorkspaceTabs(){const host=document.getElementById('workspaceTabs');if(!host)return;host.innerHTML=window.__workspaceTabs.map(id=>`<button type="button" class="workspace-tab ${id===window.__activePageId?'active':''} ${id==='dashboard'?'pinned':''}" data-workspace-tab="${id}" onclick="switchWorkspaceTab('${id}')" title="${accessEscape(workspaceTitle(id))}"><span class="workspace-tab-label">${accessEscape(workspaceTitle(id))}</span>${id==='dashboard'?'':`<span class="workspace-tab-close" role="button" aria-label="Tutup ${accessEscape(workspaceTitle(id))}" onclick="event.stopPropagation();closeWorkspaceTab('${id}')">×</span>`}</button>`).join('');const active=host.querySelector('.workspace-tab.active');if(active)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}))}
+function renderWorkspaceTabs(){const host=document.getElementById('workspaceTabs');if(!host)return;window.__workspaceTabs=window.__workspaceTabs.filter(id=>canAccessPage(id));host.innerHTML=window.__workspaceTabs.map(id=>`<button type="button" class="workspace-tab ${id===window.__activePageId?'active':''} ${id==='dashboard'?'pinned':''}" data-workspace-tab="${id}" onclick="switchWorkspaceTab('${id}')" title="${accessEscape(workspaceTitle(id))}"><span class="workspace-tab-label">${accessEscape(workspaceTitle(id))}</span>${id==='dashboard'?'':`<span class="workspace-tab-close" role="button" aria-label="Tutup ${accessEscape(workspaceTitle(id))}" onclick="event.stopPropagation();closeWorkspaceTab('${id}')">×</span>`}</button>`).join('');const active=host.querySelector('.workspace-tab.active');if(active)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}))}
 function switchWorkspaceTab(id){page(id,null,{fromTab:true,skipRefresh:true})}
 function closeWorkspaceTab(id){if(!id||id==='dashboard'){switchWorkspaceTab('dashboard');return}const wasActive=window.__activePageId===id;const current=window.__activePageId;saveWorkspaceState(current);const activeState=current?window.__workspaceEditState[current]:null;discardTransactionDraftForPage(id);delete window.__workspaceEditState[id];delete window.__workspaceScroll[id];const idx=window.__workspaceTabs.indexOf(id);if(idx>=0)window.__workspaceTabs.splice(idx,1);if(activeState&&current&&current!==id){workspaceEditKeys.forEach(k=>window[k]=activeState[k])}if(wasActive){const next=window.__workspaceTabs[Math.max(0,Math.min(idx-1,window.__workspaceTabs.length-1))]||'dashboard';window.__activePageId='';page(next,null,{fromTab:true,skipRefresh:true})}else renderWorkspaceTabs()}
-function resetWorkspaceTabs(){window.__workspaceTabs=['dashboard'];window.__workspaceScroll={dashboard:0};window.__workspaceEditState={};window.__activePageId='dashboard';renderWorkspaceTabs()}
-function page(id,b,opts={}){const previous=window.__activePageId;if(previous&&previous!==id)saveWorkspaceState(previous);document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let target=document.getElementById(id);if(!target){alert('Halaman '+id+' belum tersedia.');return}const newlyOpened=isWorkspacePage(id)?ensureWorkspaceTab(id):false;target.classList.add('active');if(b)b.classList.add('active');window.__activePageId=id;restoreWorkspaceState(id);renderWorkspaceTabs();const y=Number(window.__workspaceScroll[id]||0);requestAnimationFrame(()=>window.scrollTo({top:y,behavior:opts.fromTab?'auto':'smooth'}));if(!opts.skipRefresh&&(newlyOpened||opts.forceRefresh))setTimeout(()=>refreshPageData(id),0);setTimeout(syncMobileNav,0)}
+function resetWorkspaceTabs(){const home=canAccessModule('dashboard')?'dashboard':null;window.__workspaceTabs=home?[home]:[];window.__workspaceScroll=home?{dashboard:0}:{};window.__workspaceEditState={};window.__activePageId=home||'';renderWorkspaceTabs()}
+function page(id,b,opts={}){if(!opts.skipPermissionGuard&&id!=='moduleHome'&&!canAccessPage(id)){alert('Halaman ini tidak tersedia untuk role Anda.');return}const previous=window.__activePageId;if(previous&&previous!==id)saveWorkspaceState(previous);document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let target=document.getElementById(id);if(!target){alert('Halaman '+id+' belum tersedia.');return}const newlyOpened=isWorkspacePage(id)?ensureWorkspaceTab(id):false;target.classList.add('active');if(b)b.classList.add('active');window.__activePageId=id;restoreWorkspaceState(id);renderWorkspaceTabs();const y=Number(window.__workspaceScroll[id]||0);requestAnimationFrame(()=>window.scrollTo({top:y,behavior:opts.fromTab?'auto':'smooth'}));if(!opts.skipRefresh&&(newlyOpened||opts.forceRefresh))setTimeout(()=>refreshPageData(id),0);setTimeout(syncMobileNav,0)}
 function closePage(id){closeWorkspaceTab(id||window.__activePageId)}
 function installPageCloseButtons(){renderWorkspaceTabs()}
 async function refreshAll(){
@@ -760,7 +852,22 @@ async function refreshAll(){
  // Dropdown transaksi dimuat langsung, terpisah dari halaman daftar partner.
  await safe('pelanggan/pemasok transaksi',loadTransactionPartners);
  await safe('daftar partner',loadPartners);await safe('master settlement',loadSettlementMasters);
- await Promise.allSettled([loadReceivables(),loadPayables(),loadAccounting(),loadTrial(),loadSummary(),loadSales(),loadPurchases(),loadCashTransactions(),loadMoves(),loadBalances(),loadInventoryCard(),loadUsers(),loadAudit(),typeof loadDash==='function'?loadDash():Promise.resolve()]);
+ await Promise.allSettled([
+  hasAnyPermission(['receivables.view','receivables.manage'])?loadReceivables():Promise.resolve(),
+  hasAnyPermission(['payables.view','payables.manage'])?loadPayables():Promise.resolve(),
+  hasAnyPermission(['accounting.view','accounting.manage'])?loadAccounting():Promise.resolve(),
+  hasAnyPermission(['accounting.view','accounting.manage'])?loadTrial():Promise.resolve(),
+  hasAnyPermission(['sales.view','sales.manage','purchases.view','purchases.manage'])?loadSummary():Promise.resolve(),
+  hasAnyPermission(['sales.view','sales.manage'])?loadSales():Promise.resolve(),
+  hasAnyPermission(['purchases.view','purchases.manage'])?loadPurchases():Promise.resolve(),
+  hasAnyPermission(['cash.view','cash.manage'])?loadCashTransactions():Promise.resolve(),
+  hasAnyPermission(['inventory.view','inventory.manage'])?loadMoves():Promise.resolve(),
+  hasAnyPermission(['inventory.view','inventory.manage'])?loadBalances():Promise.resolve(),
+  hasAnyPermission(['inventory.view','inventory.manage'])?loadInventoryCard():Promise.resolve(),
+  hasPermission('users.manage')?loadUsers():Promise.resolve(),
+  hasPermission('audit.view')?loadAudit():Promise.resolve(),
+  hasPermission('dashboard.view')&&typeof loadDash==='function'?loadDash():Promise.resolve()
+]);
  const lines=document.getElementById('saleLines');if(lines&&!lines.children.length)try{addSaleLine()}catch(e){console.error('Baris penjualan awal gagal:',e)}
 }async function loadSettlementMasters(){
  const [customers,suppliers]=await Promise.all([api('/api/customers?active=1'),api('/api/suppliers?active=1')]);
@@ -1427,7 +1534,7 @@ async function resetExistingUserPassword(id,usernameValue){
     });
     msg(
       accessElement('uMsg'),
-      `Password ${usernameValue} berhasil direset.`
+      `Password ${usernameValue} berhasil direset. User wajib mengganti password saat login berikutnya.`
     );
   }catch(error){
     msg(accessElement('uMsg'),error.message,false);
@@ -2232,6 +2339,7 @@ const moduleMenus={
   ['▣','Laporan Kas Bank','Buku Kas/Bank, penerimaan, dan pengeluaran Kas/Bank',()=>openReportGroup('cash')]
  ]},
  system:{title:'Sistem',description:'Pengaturan perusahaan, pengguna, audit, langganan, dan desain dokumen.',items:[
+  ['🔑','Ubah Password Saya','Ganti password akun yang sedang digunakan',()=>openPasswordDialog(false)],
   ['★','Trial & Langganan','Lihat status trial/langganan dan simulasi paket',()=>openSubscriptionAdmin()],
   ['♚','User & Hak Akses','Kelola user, role, password, status, dan permission',()=>openUserAccess()],
   ['☷','Audit Log','Riwayat aktivitas pengguna',()=>page('audit')],
@@ -2240,8 +2348,8 @@ const moduleMenus={
   ['▤','Desain Invoice Fleksibel','Multi-template invoice standar, termin, material proyek, dan custom',async()=>{page('flexInvoiceDesigner');await loadFlexInvoiceTemplates()}],
  ]}
 };
-function showModule(key,button){window.__activeModuleKey=key;const m=moduleMenus[key];if(!m)return;page('moduleHome',button);moduleTitle.textContent=m.title;moduleDescription.textContent=m.description;moduleGrid.innerHTML=m.items.map((x,index)=>({x,index})).filter(v=>Array.isArray(v.x)&&v.x[1]&&v.x[1]!=='undefined'&&typeof v.x[3]==='function'&&!(v.x[1]==='Trial & Langganan'&&currentUser?.role?.code!=='ADMIN')).map(v=>`<article class="module-card" onclick="openModuleItem('${key}',${v.index})"><div><div class="module-card-icon">${v.x[0]}</div><h3>${v.x[1]}</h3><p>${v.x[2]}</p></div><small>Buka menu →</small></article>`).join('')}
-function openModuleItem(key,index){const item=moduleMenus[key]?.items[index];if(Array.isArray(item)&&typeof item[3]==='function')item[3]()}
+function showModule(key,button){window.__activeModuleKey=key;const m=moduleMenus[key];if(!m||!canAccessModule(key)){alert('Role Anda tidak memiliki akses ke modul ini.');return}page('moduleHome',button,{skipPermissionGuard:true});moduleTitle.textContent=m.title;moduleDescription.textContent=m.description;const visible=m.items.map((x,index)=>({x,index})).filter(v=>Array.isArray(v.x)&&v.x[1]&&v.x[1]!=='undefined'&&typeof v.x[3]==='function'&&canAccessModuleItem(key,v.x));moduleGrid.innerHTML=visible.map(v=>`<article class="module-card" onclick="openModuleItem('${key}',${v.index})"><div><div class="module-card-icon">${v.x[0]}</div><h3>${v.x[1]}</h3><p>${v.x[2]}</p></div><small>Buka menu →</small></article>`).join('')||'<div class="permission-empty"><b>Tidak ada fitur aktif pada role ini.</b><span>Hubungi Administrator perusahaan bila Anda membutuhkan akses tambahan.</span></div>'}
+function openModuleItem(key,index){const item=moduleMenus[key]?.items[index];if(!Array.isArray(item)||typeof item[3]!=='function')return;if(!canAccessModuleItem(key,item)){alert('Fitur ini tidak tersedia untuk role Anda.');return}item[3]()}
 
 
 const mobileModuleMeta={
@@ -2258,18 +2366,23 @@ const mobileModuleMeta={
   reports:['▥','Laporan','Semua laporan penjualan, pembelian, kas, dan keuangan.'],
   system:['⚙','Sistem','Pengaturan, backup, trial, dan langganan.']
 };
-function getDesktopNavButtonByKey(key){return [...document.querySelectorAll('.sidebar .module-nav button')].find(btn=>((btn.getAttribute('onclick')||'').includes(`showModule('${key}'`)))}
+function getDesktopNavButtonByKey(key){return [...document.querySelectorAll('.sidebar .module-nav button')].find(btn=>{const c=btn.getAttribute('onclick')||'';return key==='dashboard'?c.includes("page('dashboard'"):c.includes(`showModule('${key}'`)})}
 function setMobileActiveTab(key,btn){document.querySelectorAll('.mobile-tabbar button').forEach(x=>x.classList.remove('active'));let target=btn||document.querySelector(`.mobile-tabbar [data-mobile-tab="${key}"]`)||document.querySelector('.mobile-tabbar [data-mobile-tab="more"]');if(target)target.classList.add('active')}
-function renderMobileDrawerMenu(){if(!window.mobileDrawerGrid)return;const entries=['dashboard',...Object.keys(moduleMenus||{})];mobileDrawerGrid.innerHTML=entries.map(key=>{const meta=mobileModuleMeta[key]||['•',key,''];const icon=meta[0],title=meta[1],desc=meta[2]||'';const action=key==='dashboard' ? `openMobileDashboard()` : `openMobileModule('${key}')`;return `<article class="mobile-drawer-card" onclick="${action}"><div class="mobile-drawer-icon">${icon}</div><div><h4>${title}</h4><p>${desc}</p></div></article>`}).join('')}
+function renderMobileDrawerMenu(){if(!window.mobileDrawerGrid)return;const entries=['dashboard',...Object.keys(moduleMenus||{})].filter(key=>key==='dashboard'?canAccessModule('dashboard'):canAccessModule(key));mobileDrawerGrid.innerHTML=entries.map(key=>{const meta=mobileModuleMeta[key]||['•',key,''];const icon=meta[0],title=meta[1],desc=meta[2]||'';const action=key==='dashboard' ? `openMobileDashboard()` : `openMobileModule('${key}')`;return `<article class="mobile-drawer-card" onclick="${action}"><div class="mobile-drawer-icon">${icon}</div><div><h4>${title}</h4><p>${desc}</p></div></article>`}).join('')}
 function openMobileDrawer(btn){renderMobileDrawerMenu();if(window.mobileDrawerBackdrop)mobileDrawerBackdrop.classList.remove('hidden');if(window.mobileDrawer){mobileDrawer.classList.remove('hidden');mobileDrawer.setAttribute('aria-hidden','false')}document.body.classList.add('mobile-drawer-open');setMobileActiveTab('more',btn)}
 function closeMobileDrawer(){if(window.mobileDrawerBackdrop)mobileDrawerBackdrop.classList.add('hidden');if(window.mobileDrawer){mobileDrawer.classList.add('hidden');mobileDrawer.setAttribute('aria-hidden','true')}document.body.classList.remove('mobile-drawer-open');syncMobileNav()}
-function openMobileDashboard(btn){closeMobileDrawer();window.__activeModuleKey='dashboard';page('dashboard',document.querySelector('.sidebar .module-nav button'));setMobileActiveTab('dashboard',btn)}
-function openMobileModule(key,btn){closeMobileDrawer();window.__activeModuleKey=key;const desktopBtn=getDesktopNavButtonByKey(key);showModule(key,desktopBtn||null);setMobileActiveTab(['sales','purchases','cash'].includes(key)?key:'more',btn)}
+function openMobileDashboard(btn){if(!canAccessModule('dashboard'))return;closeMobileDrawer();window.__activeModuleKey='dashboard';page('dashboard',getDesktopNavButtonByKey('dashboard'));setMobileActiveTab('dashboard',btn)}
+function openMobileModule(key,btn){if(!canAccessModule(key))return;closeMobileDrawer();window.__activeModuleKey=key;const desktopBtn=getDesktopNavButtonByKey(key);showModule(key,desktopBtn||null);setMobileActiveTab(['sales','purchases','cash'].includes(key)?key:'more',btn)}
 function syncMobileNav(){if(!window.matchMedia||!window.matchMedia('(max-width:760px)').matches)return;const key=window.__activeModuleKey||((window.__activePageId==='dashboard'||!window.__activePageId)?'dashboard':'more');setMobileActiveTab(['dashboard','sales','purchases','cash'].includes(key)?key:'more')}
 window.addEventListener('resize',()=>{if(window.matchMedia && !window.matchMedia('(max-width:760px)').matches)closeMobileDrawer();syncMobileNav()});
 window.addEventListener('orientationchange',()=>setTimeout(syncMobileNav,180));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileDrawer()});
 
+
+let passwordChangeForced=false;
+function openPasswordDialog(force=false){passwordChangeForced=!!force;myCurrentPassword.value='';myNewPassword.value='';myConfirmPassword.value='';passwordChangeMsg.textContent='';passwordForceNote.classList.toggle('hidden',!passwordChangeForced);passwordDialogSubtitle.textContent=passwordChangeForced?'Buat password baru untuk melanjutkan.':'Ganti password akun yang sedang digunakan.';passwordDialogClose.classList.toggle('hidden',passwordChangeForced);passwordCancelBtn.classList.toggle('hidden',passwordChangeForced);if(!changePasswordDialog.open)changePasswordDialog.showModal();setTimeout(()=>myCurrentPassword.focus(),50)}
+async function saveMyPassword(){try{const current=myCurrentPassword.value,newPass=myNewPassword.value,confirmPass=myConfirmPassword.value;if(!current)throw Error('Password saat ini wajib diisi.');if(newPass.length<8)throw Error('Password baru minimal 8 karakter.');if(newPass!==confirmPass)throw Error('Konfirmasi password baru tidak sama.');await api('/api/me/change-password',{method:'POST',body:JSON.stringify({current_password:current,new_password:newPass})});if(currentUser)currentUser.must_change_password=false;passwordChangeForced=false;msg(passwordChangeMsg,'Password berhasil diubah.',true);setTimeout(()=>changePasswordDialog.close(),500)}catch(e){msg(passwordChangeMsg,e.message,false)}}
+changePasswordDialog.addEventListener('cancel',e=>{if(passwordChangeForced)e.preventDefault()});
 async function refreshSubscriptionChip(){try{let x=await api('/api/license-status');let label=x.mode==='SUBSCRIPTION'?((x.plan_name||'Langganan')+' · '+x.days_remaining+' hari'):x.mode==='TRIAL'?('Trial · '+x.days_remaining+' hari'):('Masa akses berakhir');if(window.webSubscriptionChip)webSubscriptionChip.textContent=label+' · '+(x.max_users||2)+' user'}catch(e){}}
 async function openSubscriptionAdmin(){if(!currentUser||currentUser.role?.code!=='ADMIN'){alert('Menu ini khusus Administrator.');return}page('subscriptionAdmin');await loadSubscriptionAdmin()}
 async function loadSubscriptionAdmin(){try{let x=await api('/api/subscription-admin');subStatus.textContent=x.mode==='SUBSCRIPTION'?(x.plan_name||'Aktif'):x.mode;subDays.textContent=x.days_remaining??0;subUsers.textContent=x.max_users??2;let ex=x.mode==='TRIAL'?x.trial_expires_at:x.expires_at;subExpiry.textContent=ex?new Date(ex).toLocaleDateString('id-ID'):'-';updateSubPrice()}catch(e){msg(subMsg,e.message,false)}}

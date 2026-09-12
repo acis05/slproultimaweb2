@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS roles(
 CREATE TABLE IF NOT EXISTS users(
  id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE COLLATE NOCASE NOT NULL,
  full_name TEXT NOT NULL, password_hash TEXT NOT NULL, role_id INTEGER NOT NULL,
- is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+ is_active INTEGER NOT NULL DEFAULT 1, must_change_password INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
  FOREIGN KEY(role_id) REFERENCES roles(id));
 CREATE TABLE IF NOT EXISTS sessions(
  token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, client_ip TEXT, client_name TEXT,
@@ -987,6 +987,7 @@ def init_database():
             _allow_zero_useful_life(c)
             now=utc_now()
             c.execute("INSERT OR IGNORE INTO owner_cloud_settings(id,updated_at) VALUES(1,?)",(now,))
+            _ensure_column(c,"users","must_change_password","must_change_password INTEGER NOT NULL DEFAULT 0")
             _ensure_column(c,"sessions","device_id","device_id TEXT")
             _ensure_column(c,"sessions","user_agent","user_agent TEXT")
             _ensure_column(c,"project_documents","file_content","file_content BLOB")
@@ -1231,6 +1232,23 @@ def init_tenant(schema_name, admin_email, admin_name, admin_password, company_na
                     (str(admin_email).strip().lower(),str(admin_name).strip(),hash_password(admin_password),rid,now,now))
             tx.execute("UPDATE company_profile SET company_name=?,email=?,updated_at=? WHERE id=1",(str(company_name).strip(),str(admin_email).strip().lower(),now))
             subscription.reset_trial(tx)
+    return True
+
+
+def ensure_password_security_schema():
+    """Apply password-recovery columns to the currently selected tenant schema.
+
+    Existing SaaS tenants were created before v1.4.2, so this lightweight migration
+    is also called when their session is activated.
+    """
+    c=connect()
+    try:
+        if IS_POSTGRES:
+            c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password INTEGER NOT NULL DEFAULT 0")
+        else:
+            _ensure_column(c,"users","must_change_password","must_change_password INTEGER NOT NULL DEFAULT 0")
+        c.commit()
+    finally:c.close()
     return True
 
 

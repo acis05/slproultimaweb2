@@ -1,4 +1,4 @@
-# v1.4.0 Security Migration Notes
+# v1.4.2 Security Migration Notes
 
 - Tidak mengubah schema transaksi tenant.
 - Menambah tabel pusat `saas_security_attempts`, `saas_rate_limits`, dan `saas_security_audit` di schema `public`.
